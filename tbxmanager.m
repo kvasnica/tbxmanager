@@ -796,6 +796,12 @@ function tbx_registerEnabled(Toolbox)
 % Registers the toolbox as enabled
 
 Setup = tbx_setup;
+
+% remove the "url" field
+if isfield(Toolbox, 'url')
+	Toolbox = rmfield(Toolbox, 'url');
+end
+
 if ~exist(Setup.enabledfile, 'file')
 	TBXENABLED = Toolbox;
 else
@@ -806,12 +812,7 @@ else
 	for i = 1:length(TBXENABLED)
 		keep(i) = ~isequal(TBXENABLED(i).name, Toolbox.name);
 	end
-	TBXENABLED = TBXENABLED(keep);
-	if ~isempty(TBXENABLED)
-		TBXENABLED(end+1) = Toolbox;
-	else
-		TBXENABLED = Toolbox;
-	end
+	TBXENABLED = [TBXENABLED(keep) Toolbox];
 end
 save(Setup.enabledfile, 'TBXENABLED');
 
