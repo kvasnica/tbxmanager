@@ -8,7 +8,7 @@ function tbxmanager(command, varargin)
 %   tbxmanager show available
 %   tbxmanager update
 %   tbxmanager update package1 package2 ...
-%   tbxmanager restore
+%   tbxmanager restorepath
 %   tbxmanager enable package1 package2 ...
 %   tbxmanager disable package1 package2 ...
 %   tbxmanager uninstall package1 package2 ...
@@ -42,7 +42,7 @@ switch lower(command)
 		else
 			main_update(args);
 		end
-	case 'restore',
+	case 'restorepath',
 		tbx_restorePath;
 	case 'enable',
 		main_addpath(args);
