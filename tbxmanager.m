@@ -15,6 +15,8 @@ function tbxmanager(command, varargin)
 %   tbxmanager uninstall package1 package2 ...
 %   tbxmanager source add URL
 %   tbxmanager source remove URL
+%
+% For help, contact michal.kvasnica@stuba.sk
 
 % Copyright is with the following author(s):
 %
