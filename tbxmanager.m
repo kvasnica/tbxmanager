@@ -3,6 +3,7 @@ function tbxmanager(command, varargin)
 %
 % Supported commands:
 %   tbxmanager install package1 package2 ...
+%   tbxmanager show enabled
 %   tbxmanager show installed
 %   tbxmanager show available
 %   tbxmanager update
@@ -216,6 +217,9 @@ switch lower(args{1})
 	case 'available',
 		L = tbx_listAvailable();
 		fprintf('Packages available for download:\n\n');
+	case 'enabled',
+		L = tbx_listEnabled();
+		fprintf('List of enabled packages:\n\n');
 	otherwise,
 		error('Unknown mode "%s".', args{1});
 end
@@ -747,6 +751,22 @@ else
 	else
 		error('Malformed string, must be in "name:version:arch" format.');
 	end
+end
+
+end
+
+%%
+function Enabled = tbx_listEnabled
+% Lists enabled toolboxes
+
+Setup = tbx_setup;
+enabled_chache_file = [Setup.maindir filesep 'tbxenabled.mat'];
+if exist(enabled_chache_file, 'file')
+	% prune any version of this toolbox from the list
+	load(enabled_chache_file);
+	Enabled = TBXENABLED;
+else
+	Enabled = [];
 end
 
 end
