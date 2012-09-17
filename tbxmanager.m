@@ -783,7 +783,7 @@ if exist(Setup.enabledfile, 'file')
 	load(Setup.enabledfile);
 	keep = true(1, length(TBXENABLED));
 	for i = 1:length(TBXENABLED)
-		keep = ~isequal(TBXENABLED(i), Toolbox);
+		keep(i) = ~isequal(TBXENABLED(i), Toolbox);
 	end
 	TBXENABLED = TBXENABLED(keep);
 	save(Setup.enabledfile, 'TBXENABLED');
