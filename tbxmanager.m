@@ -985,6 +985,11 @@ if (nargin < 1)
 	return
 end
 
+% check if java is running
+if ~usejava('jvm')
+    error('Java virtual machine must be running.');
+end
+
 if isa(file, 'org.apache.xerces.dom.DeferredDocumentImpl') || isa(file, 'org.apache.xerces.dom.DeferredElementImpl')
 	% input is a java xml object
 	xDoc = file;
