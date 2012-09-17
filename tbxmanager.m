@@ -804,7 +804,7 @@ else
 	load(enabled_chache_file);
 	keep = true(1, length(TBXENABLED));
 	for i = 1:length(TBXENABLED)
-		keep = ~isequal(TBXENABLED(i).name, Toolbox.name);
+		keep(i) = ~isequal(TBXENABLED(i).name, Toolbox.name);
 	end
 	TBXENABLED = TBXENABLED(keep);
 	if ~isempty(TBXENABLED)
