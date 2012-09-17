@@ -6,6 +6,7 @@ function tbxmanager(command, varargin)
 %   tbxmanager show enabled
 %   tbxmanager show installed
 %   tbxmanager show available
+%   tbxmanager show sources
 %   tbxmanager update
 %   tbxmanager update package1 package2 ...
 %   tbxmanager restorepath
@@ -14,7 +15,6 @@ function tbxmanager(command, varargin)
 %   tbxmanager uninstall package1 package2 ...
 %   tbxmanager source add URL
 %   tbxmanager source remove URL
-%   tbxmanager source show
 
 if nargin==0
 	help(mfilename);
@@ -71,13 +71,6 @@ function main_source(args)
 
 Setup = tbx_setup;
 switch args{1}
-	case 'show',
-		fprintf('Active sources:\n\n');
-		sources = Setup.sources;
-		for i = 1:length(sources)
-			fprintf('%s\n', sources{i});
-		end
-		
 	case 'add',
 		if length(args)<2
 			error('"source add" requires an URL.');
@@ -91,7 +84,7 @@ switch args{1}
 		tbx_removeSource(Setup.sourcesfile, args{2});
 		
 	otherwise
-		error('Unrecognized option "%s". Allowed are "show", "add" and "remove".', ...
+		error('Unrecognized option "%s". Allowed are "add" and "remove".', ...
 			args{1});
 end
 
@@ -214,6 +207,14 @@ if isempty(args)
 end
 
 switch lower(args{1})
+	case 'sources'
+		Setup = tbx_setup;
+		fprintf('Active sources:\n\n');
+		sources = Setup.sources;
+		for i = 1:length(sources)
+			fprintf('%s\n', sources{i});
+		end
+		return
 	case 'installed',
 		L = tbx_listInstalled();
 		fprintf('Locally installed packages:\n\n');
