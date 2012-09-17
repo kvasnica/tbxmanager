@@ -126,6 +126,9 @@ if isempty(setup.sources)
 	tbx_writeSources(setup.sourcesfile, setup.sources);
 end
 
+% file where list of enabled toolboxes is stored
+setup.enabledfile = [maindir filesep 'tbxenabled.mat'];
+
 end
 
 %%
@@ -760,10 +763,9 @@ function Enabled = tbx_listEnabled
 % Lists enabled toolboxes
 
 Setup = tbx_setup;
-enabled_chache_file = [Setup.maindir filesep 'tbxenabled.mat'];
-if exist(enabled_chache_file, 'file')
+if exist(Setup.enabledfile, 'file')
 	% prune any version of this toolbox from the list
-	load(enabled_chache_file);
+	load(Setup.enabledfile);
 	Enabled = TBXENABLED;
 else
 	Enabled = [];
@@ -776,16 +778,15 @@ function tbx_registerDisabled(Toolbox)
 % Registers the toolbox as enabled
 
 Setup = tbx_setup;
-enabled_chache_file = [Setup.maindir filesep 'tbxenabled.mat'];
-if exist(enabled_chache_file, 'file')
+if exist(Setup.enabledfile, 'file')
 	% prune any version of this toolbox from the list
-	load(enabled_chache_file);
+	load(Setup.enabledfile);
 	keep = true(1, length(TBXENABLED));
 	for i = 1:length(TBXENABLED)
 		keep = ~isequal(TBXENABLED(i), Toolbox);
 	end
 	TBXENABLED = TBXENABLED(keep);
-	save(enabled_chache_file, 'TBXENABLED');
+	save(Setup.enabledfile, 'TBXENABLED');
 end
 
 end
@@ -795,13 +796,12 @@ function tbx_registerEnabled(Toolbox)
 % Registers the toolbox as enabled
 
 Setup = tbx_setup;
-enabled_chache_file = [Setup.maindir filesep 'tbxenabled.mat'];
-if ~exist(enabled_chache_file, 'file')
+if ~exist(Setup.enabledfile, 'file')
 	TBXENABLED = Toolbox;
 else
 	% prune any previous versions of this toolbox from the list of enabled
 	% toolboxes
-	load(enabled_chache_file);
+	load(Setup.enabledfile);
 	keep = true(1, length(TBXENABLED));
 	for i = 1:length(TBXENABLED)
 		keep(i) = ~isequal(TBXENABLED(i).name, Toolbox.name);
@@ -813,7 +813,7 @@ else
 		TBXENABLED = Toolbox;
 	end
 end
-save(enabled_chache_file, 'TBXENABLED');
+save(Setup.enabledfile, 'TBXENABLED');
 
 end
 
@@ -822,9 +822,8 @@ function tbx_restorePath
 % Restores path to all previously active toolboxes
 
 Setup = tbx_setup;
-enabled_chache_file = [Setup.maindir filesep 'tbxenabled.mat'];
-if exist(enabled_chache_file, 'file')
-	load(enabled_chache_file);
+if exist(Setup.enabledfile, 'file')
+	load(Setup.enabledfile);
 	for i = 1:length(TBXENABLED)
 		tbx_addPath(TBXENABLED(i));
 	end
