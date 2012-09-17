@@ -120,7 +120,7 @@ if isempty(setup.sources)
 end
 
 % file where list of enabled toolboxes is stored
-setup.enabledfile = [maindir filesep 'tbxenabled.mat'];
+setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
 
 end
 
@@ -222,8 +222,16 @@ switch lower(args{1})
 		L = tbx_listAvailable();
 		fprintf('Packages available for download:\n\n');
 	case 'enabled',
-		L = tbx_listEnabled();
+		L = tbx_loadEnabled();
 		fprintf('List of enabled packages:\n\n');
+		names = unique(arrayfun(@(x) x.name, L, 'UniformOutput', false));
+		maxname = max(cellfun('length', names));
+		for i = 1:length(L)
+			fprintf('%s %s Version %s\n', L(i).name, ...
+				repmat(' ', 1, max(1, 1+maxname-length(L(i).name))), ...
+				L(i).version);
+		end
+		return
 	otherwise,
 		error('Unknown mode "%s".', args{1});
 end
@@ -236,8 +244,11 @@ for i = 1:length(names)
 	fprintf('%s %s Version %s', Latest.name, ...
 		repmat(' ', 1, max(1, 1+maxname-length(Latest.name))), ...
 		Latest.version);
-	fprintf('%s(%s)\n', repmat(' ', 1, max(1, 10-length(Latest.version))), ...
-		datestr(datenum(Latest.date), 1));
+	if isfield(Latest, 'date')
+		fprintf('%s(%s)', repmat(' ', 1, max(1, 10-length(Latest.version))), ...
+			datestr(datenum(Latest.date), 1));
+	end
+	fprintf('\n');
 end
 
 end
@@ -760,17 +771,35 @@ end
 end
 
 %%
-function Enabled = tbx_listEnabled
-% Lists enabled toolboxes
+function Enabled = tbx_loadEnabled
+% Loads list of enabled toolboxes
 
 Setup = tbx_setup;
+Enabled = [];
 if exist(Setup.enabledfile, 'file')
-	% prune any version of this toolbox from the list
-	load(Setup.enabledfile);
-	Enabled = TBXENABLED;
-else
-	Enabled = [];
+	s = textscan(fileread(Setup.enabledfile), '%s');
+	if ~isempty(s)
+		for i = 1:length(s{1})
+			Enabled = [Enabled tbx_n2s(s{1}{i})];
+		end
+	end
 end
+
+end
+
+%%
+function tbx_writeEnabled(Enabled)
+% writes list of enabled toolboxes
+
+Setup = tbx_setup;
+fid = fopen(Setup.enabledfile, 'w');
+if fid < 0
+	error('Couldn''t open %s for writing.', fname);
+end
+for i = 1:length(Enabled)
+	fprintf(fid, '%s\n', tbx_s2n(Enabled(i)));
+end
+fclose(fid);
 
 end
 
@@ -778,17 +807,16 @@ end
 function tbx_registerDisabled(Toolbox)
 % Registers the toolbox as enabled
 
-Setup = tbx_setup;
-if exist(Setup.enabledfile, 'file')
-	% prune any version of this toolbox from the list
-	load(Setup.enabledfile);
-	keep = true(1, length(TBXENABLED));
-	for i = 1:length(TBXENABLED)
-		keep(i) = ~isequal(TBXENABLED(i), Toolbox);
-	end
-	TBXENABLED = TBXENABLED(keep);
-	save(Setup.enabledfile, 'TBXENABLED');
+% sanitize the Toolbox structure
+Toolbox = tbx_n2s(tbx_s2n(Toolbox));
+
+Enabled = tbx_loadEnabled;
+% prune any version of this toolbox from the list
+keep = true(1, length(Enabled));
+for i = 1:length(Enabled)
+	keep(i) = ~isequal(Enabled(i), Toolbox);
 end
+tbx_writeEnabled(Enabled(keep));
 
 end
 
@@ -796,26 +824,18 @@ end
 function tbx_registerEnabled(Toolbox)
 % Registers the toolbox as enabled
 
-Setup = tbx_setup;
+% sanitize the Toolbox structure
+Toolbox = tbx_n2s(tbx_s2n(Toolbox));
 
-% remove the "url" field
-if isfield(Toolbox, 'url')
-	Toolbox = rmfield(Toolbox, 'url');
+Enabled = tbx_loadEnabled;
+% prune any previous versions of this toolbox from the list of enabled
+% toolboxes
+keep = true(1, length(Enabled));
+for i = 1:length(Enabled)
+	keep(i) = ~isequal(Enabled(i).name, Toolbox.name);
 end
-
-if ~exist(Setup.enabledfile, 'file')
-	TBXENABLED = Toolbox;
-else
-	% prune any previous versions of this toolbox from the list of enabled
-	% toolboxes
-	load(Setup.enabledfile);
-	keep = true(1, length(TBXENABLED));
-	for i = 1:length(TBXENABLED)
-		keep(i) = ~isequal(TBXENABLED(i).name, Toolbox.name);
-	end
-	TBXENABLED = [TBXENABLED(keep) Toolbox];
-end
-save(Setup.enabledfile, 'TBXENABLED');
+Enabled = [Enabled(keep) Toolbox];
+tbx_writeEnabled(Enabled);
 
 end
 
@@ -823,12 +843,9 @@ end
 function tbx_restorePath
 % Restores path to all previously active toolboxes
 
-Setup = tbx_setup;
-if exist(Setup.enabledfile, 'file')
-	load(Setup.enabledfile);
-	for i = 1:length(TBXENABLED)
-		tbx_addPath(TBXENABLED(i));
-	end
+Enabled = tbx_loadEnabled;
+for i = 1:length(Enabled)
+	tbx_addPath(Enabled(i));
 end
 
 end
