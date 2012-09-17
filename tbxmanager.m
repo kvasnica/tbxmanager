@@ -268,8 +268,8 @@ end
 function main_addpath(names)
 % adds selected toolboxes to the Matlab path
 
-validate_notempty(varargin);
-validate_installed(varargin);
+validate_notempty(names);
+validate_installed(names);
 
 Installed = tbx_listInstalled();
 for i = 1:length(names)
