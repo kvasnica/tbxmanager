@@ -1,0 +1,2 @@
+#!/bin/sh
+scp tbxmanager.m mpt@autserv01.ee.ethz.ch:/home/mpt/public_html/tbx/
