@@ -722,7 +722,6 @@ end
 function L = tbx_loadSource(source)
 % Internal helper to load list of available toolboxes from a since source
 
-fprintf('Retrieving %s\n', source);
 if ~exist(source, 'file')
 	% make a local copy of the network file
 	xml = urlread(source);
