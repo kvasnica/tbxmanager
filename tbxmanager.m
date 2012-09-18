@@ -719,6 +719,7 @@ L;
 
 end
 
+%%
 function L = tbx_loadSource(source)
 % Internal helper to load list of available toolboxes from a since source
 
@@ -734,6 +735,18 @@ if ~exist(source, 'file')
 else
 	% read directly from local file
 	X = xml2struct(source);
+end
+
+% is the XML compatible?
+required_version = '1.0';
+if ~isfield(X, 'tbxmanager') || ...
+		~isfield(X.tbxmanager, 'Attributes') || ...
+		~isfield(X.tbxmanager.Attributes, 'version') || ...
+		~isequal(X.tbxmanager.Attributes.version, required_version)
+	fprintf('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
+	fprintf('Run "tbxmanager selfupdate" first.\n');
+	fprintf('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n');
+	error('Cannot continue.');
 end
 
 L = [];
