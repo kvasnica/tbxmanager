@@ -43,6 +43,11 @@ function tbxmanager(command, varargin)
 %     Boston, MA  02111-1307  USA
 % ------------------------------------------------------------------------
 
+%% check if java is running
+if ~usejava('jvm')
+    error('Java virtual machine must be running.');
+end
+
 %% add self to path
 addpath(fileparts(which(mfilename)));
 
@@ -1030,11 +1035,6 @@ if (nargin < 1)
 	clc;
 	help xml2struct
 	return
-end
-
-% check if java is running
-if ~usejava('jvm')
-    error('Java virtual machine must be running.');
 end
 
 if isa(file, 'org.apache.xerces.dom.DeferredDocumentImpl') || isa(file, 'org.apache.xerces.dom.DeferredElementImpl')
