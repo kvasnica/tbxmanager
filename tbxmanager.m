@@ -43,6 +43,9 @@ function tbxmanager(command, varargin)
 %     Boston, MA  02111-1307  USA
 % ------------------------------------------------------------------------
 
+%% add self to path
+addpath(fileparts(which(mfilename)));
+
 if nargin==0
 	help(mfilename);
 	return
