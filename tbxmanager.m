@@ -15,6 +15,7 @@ function tbxmanager(command, varargin)
 %   tbxmanager uninstall package1 package2 ...
 %   tbxmanager source add URL
 %   tbxmanager source remove URL
+%   tbxmanager selfupdate
 %
 % For help, contact michal.kvasnica@stuba.sk
 
@@ -80,9 +81,47 @@ switch lower(command)
 		main_show(args);
 	case 'source'
 		main_source(args);
+	case 'selfupdate'
+		main_selfupdate;
 	otherwise
 		help(mfilename);
 		error('Unrecognized command "%s".', command);
+end
+
+end
+
+%%
+function C = tbx_crc32(data)
+% returns CRC32 checksum of given data
+
+crc_gen = java.util.zip.CRC32;
+crc_gen.update(double(data));
+C = crc_gen.getValue();
+
+end
+
+%%
+function main_selfupdate
+% updates this file
+
+Setup = tbx_setup;
+% get a simple CRC of the current version
+this_file = [Setup.maindir filesep mfilename '.m'];
+this_content = fileread(this_file);
+
+other_content = urlread(Setup.selfurl);
+other_crc = sum(other_content);
+if tbx_crc32(this_content) == tbx_crc32(other_content)
+	fprintf('You already have the newest version.\n');
+else
+	% make a copy of the current version just to be sure
+	if ~copyfile(this_file, [this_file '.old']);
+		error('Couldn''t back up %s to %s.', this_file, ...
+			[this_file '.old']);
+	end
+	urlwrite(Setup.selfurl, this_file);
+	rehash
+	fprintf('tbxmanager updated to latest version.\n');
 end
 
 end
@@ -147,6 +186,9 @@ end
 
 % file where list of enabled toolboxes is stored
 setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
+
+% where on the web is tbxmanager?
+setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
 
 end
 
