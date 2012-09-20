@@ -45,7 +45,7 @@ function tbxmanager(command, varargin)
 
 %% check if java is running
 if ~usejava('jvm')
-    error('Java virtual machine must be running.');
+    error('TBXMANAGER:NOJAVA', 'Java virtual machine must be running.');
 end
 
 %% add self to path
@@ -58,11 +58,11 @@ end
 
 %% validate input arguments
 if ~ischar(command)
-	error('The command must be a string.');
+	error('TBXMANAGER:BADCOMMAND', 'The command must be a string.');
 end
 for i = 1:length(varargin)
 	if ~ischar(varargin{i})
-		error('All arguments must be strings.');
+		error('TBXMANAGER:BADCOMMAND', 'All arguments must be strings.');
 	end
 end
 
@@ -70,30 +70,52 @@ end
 args = varargin;
 switch lower(command)
 	case 'install',
-		main_install(args);
+		cmd = @main_install;
 	case 'update',
 		if isempty(args)
-			main_updateall();
+			cmd = @main_updateall;
 		else
-			main_update(args);
+			cmd = @main_update;
 		end
 	case 'restorepath',
-		tbx_restorePath;
+		cmd = @tbx_restorePath;
 	case 'enable',
-		main_addpath(args);
+		cmd = @main_addpath;
 	case 'disable',
-		main_rmpath(args);
+		cmd = @main_rmpath;
 	case 'uninstall',
-		main_uninstall(args);
+		cmd = @main_uninstall;
 	case 'show',
-		main_show(args);
+		cmd = @main_show;
 	case 'source'
-		main_source(args);
+		cmd = @main_source;
 	case 'selfupdate'
-		main_selfupdate;
+		cmd = @main_selfupdate;
 	otherwise
 		help(mfilename);
-		error('Unrecognized command "%s".', command);
+		error('TBXMANAGER:BADCOMMAND', 'Unrecognized command "%s".', command);
+end
+
+% safely execute the command
+try
+	feval(cmd, args);
+catch
+	err = lasterror;
+	if ~isempty(err.identifier) && isempty(strfind(err.identifier, 'TBXMANAGER'))
+		% unexpected error
+		fprintf('\n----------------------------------------------------\n');
+		fprintf('Oooops, an error has occurred.\n');
+		fprintf('\n');
+		fprintf('Run "tbxmanager selfupdate" and repeat your action.\n');
+		fprintf('\n');
+		fprintf('If problems remain, contact michal.kvasnica@stuba.sk\n');
+		fprintf('----------------------------------------------------\n\n');
+		rethrow(lasterror);
+	else
+		% expected error
+		fprintf('\n%s\n\n', err.message);
+		error('TBXMANAGER:ERROR', 'Cannot continue, see message above.');
+	end
 end
 
 end
@@ -109,7 +131,7 @@ C = crc_gen.getValue();
 end
 
 %%
-function main_selfupdate
+function main_selfupdate(args)
 % updates this file
 
 Setup = tbx_setup;
@@ -124,7 +146,7 @@ if tbx_crc32(this_content) == tbx_crc32(other_content)
 else
 	% make a copy of the current version just to be sure
 	if ~copyfile(this_file, [this_file '.old']);
-		error('Couldn''t back up %s to %s.', this_file, ...
+		error('TBXMANAGER:FILEERROR', 'Couldn''t back up %s to %s.', this_file, ...
 			[this_file '.old']);
 	end
 	urlwrite(Setup.selfurl, this_file);
@@ -146,18 +168,18 @@ Setup = tbx_setup;
 switch args{1}
 	case 'add',
 		if length(args)<2
-			error('"source add" requires an URL.');
+			error('TBXMANAGER:BADCOMMAND', '"source add" requires an URL.');
 		end
 		tbx_addSource(Setup.sourcesfile, args{2});
 		
 	case 'remove'
 		if length(args)<2
-			error('"source remove" requires an URL.');
+			error('TBXMANAGER:BADCOMMAND', '"source remove" requires an URL.');
 		end
 		tbx_removeSource(Setup.sourcesfile, args{2});
 		
 	otherwise
-		error('Unrecognized option "%s". Allowed are "add" and "remove".', ...
+		error('TBXMANAGER:BADCOMMAND', 'Unrecognized option "%s". Allowed are "add" and "remove".', ...
 			args{1});
 end
 
@@ -219,7 +241,7 @@ function tbx_writeSources(fname, sources)
 
 fid = fopen(fname, 'w');
 if fid < 0
-	error('Couldn''t open %s for writing.', fname);
+	error('TBXMANAGER:FILEERROR', 'Couldn''t open %s for writing.', fname);
 end
 for i = 1:length(sources)
 	fprintf(fid, '%s\n', sources{i});
@@ -236,7 +258,7 @@ function tbx_addSource(fname, source)
 try
 	urlread(source);
 catch
-	error('Unable to connect to %s', source);
+	error('TBXMANAGER:URLERROR', 'Unable to connect to %s', source);
 end
 % load the sources
 sources = tbx_getSources(fname);
@@ -309,7 +331,7 @@ switch lower(args{1})
 		end
 		return
 	otherwise,
-		error('Unknown mode "%s".', args{1});
+		error('TBXMANAGER:BADCOMMAND', 'Unknown mode ''%s''. Allowed are ''installed'', ''available'', ''enabled'', ''sources''.', args{1});
 end
 
 % get just names of toolboxes
@@ -396,7 +418,7 @@ end
 
 
 %%
-function main_updateall()
+function main_updateall(args)
 % updates all locally installed toolboxes
 
 Installed = tbx_listInstalled();
@@ -455,7 +477,7 @@ end
 function validate_notempty(names)
 
 if isempty(names)
-	error('Name of a toolbox must be provided.');
+	error('TBXMANAGER:BADCOMMAND', 'Name of a toolbox must be provided.');
 end
 
 end
@@ -467,7 +489,7 @@ function validate_available(names)
 Available = tbx_listAvailable();
 for i = 1:length(names)
 	if ~tbx_isOnList(Available, names{i})
-		error('Toolbox "%s" is not available.', names{i});
+		error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not available.', names{i});
 	end
 end
 
@@ -480,7 +502,7 @@ function validate_installed(names)
 Installed = tbx_listInstalled();
 for i = 1:length(names)
 	if ~tbx_isOnList(Installed, names{i})
-		error('Toolbox "%s" is not installed.', names{i});
+		error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', names{i});
 	end
 end
 
@@ -496,7 +518,7 @@ function tbx_addPath(Toolbox)
 %     arch: architecture
 
 if ~tbx_isInstalled(Toolbox)
-	error('Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
+	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
 end
 
 % remove any previous instances of this toolbox from the path
@@ -520,7 +542,7 @@ function Latest = tbx_getLatestVersion(List, name)
 % Returns specifications of a new version for a particular architecture
 
 if ~tbx_isOnList(List, name)
-	error('Toolbox "%s" is not available.', name);
+	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not available.', name);
 end
 
 % get list of versions for this toolbox and architecture
@@ -554,22 +576,22 @@ function tbx_install(Toolbox)
 %      url: download url
 
 if tbx_isInstalled(Toolbox)
-	error('Toolbox "%s" is already installed.', tbx_s2n(Toolbox));
+	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is already installed.', tbx_s2n(Toolbox));
 end
 
 % Extract name of the installation package from the URL
 seps = find(Toolbox.url=='/');
 if isempty(seps)
-	error('Malformed URL.');
+	error('TBXMANAGER:BADCOMMAND', 'Malformed URL.');
 end
 install_file = Toolbox.url(seps(end)+1:end);
 if isempty(install_file)
-	error('No file found in the URL.');
+	error('TBXMANAGER:URLERROR', 'No file found in the URL.');
 end
 % Detect extension
 [p, n, extension] = fileparts(install_file);
 if isempty(extension)
-	error('No file found in the URL.');
+	error('TBXMANAGER:URLERROR', 'No file found in the URL.');
 end
 switch lower(extension(2:end))
 	case 'zip',
@@ -581,13 +603,13 @@ switch lower(extension(2:end))
 	case 'm',
 		isarchive = false;
 	otherwise,
-		error('Unsupported file extension "%s".', extension);
+		error('TBXMANAGER:URLERROR', 'Unsupported file extension "%s".', extension);
 end
 
 % Create installation directory
 install_dir = tbx_installationDir(Toolbox);
 if ~exist(install_dir, 'dir') && ~mkdir(install_dir)
-	error('Couldn''t create directory "%s".', install_dir);
+	error('TBXMANAGER:FILEERROR', 'Couldn''t create directory "%s".', install_dir);
 end
 
 % Download the package to install_dir
@@ -601,7 +623,7 @@ catch
 	rethrow(lasterror);
 end
 if ~exist(download_to, 'file')
-	error('Download failed.');
+	error('TBXMANAGER:URLERROR', 'Download failed.');
 end
 
 % Unpack
@@ -746,7 +768,7 @@ if ~isfield(X, 'tbxmanager') || ...
 	fprintf('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
 	fprintf('Run "tbxmanager selfupdate" first.\n');
 	fprintf('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n');
-	error('Cannot continue.');
+	error('TBXMANAGER:XMLERROR', 'Cannot continue.');
 end
 
 L = [];
@@ -852,7 +874,7 @@ else
 		S.version = N(colpos(1)+1:colpos(2)-1);
 		S.arch = N(colpos(2)+1:end);
 	else
-		error('Malformed string, must be in "name:version:arch" format.');
+		error('TBXMANAGER:BADCOMMAND', 'Malformed string, must be in "name:version:arch" format.');
 	end
 end
 
@@ -882,7 +904,7 @@ function tbx_writeEnabled(Enabled)
 Setup = tbx_setup;
 fid = fopen(Setup.enabledfile, 'w');
 if fid < 0
-	error('Couldn''t open %s for writing.', fname);
+	error('TBXMANAGER:FILEERROR', 'Couldn''t open %s for writing.', fname);
 end
 for i = 1:length(Enabled)
 	fprintf(fid, '%s\n', tbx_s2n(Enabled(i)));
@@ -928,7 +950,7 @@ tbx_writeEnabled(Enabled);
 end
 
 %%
-function tbx_restorePath
+function tbx_restorePath(args)
 % Restores path to all previously active toolboxes
 
 Enabled = tbx_loadEnabled;
@@ -948,7 +970,7 @@ function tbx_rmPath(Toolbox)
 %     arch: architecture
 
 if ~tbx_isInstalled(Toolbox)
-	error('Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
+	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
 end
 
 % remove any previous instances of this toolbox from the path
@@ -987,7 +1009,7 @@ function tbx_uninstall(Toolbox)
 %     arch: architecture
 
 if ~tbx_isInstalled(Toolbox)
-	error('Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
+	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
 end
 
 % Delete the arch directory
@@ -1062,7 +1084,7 @@ else
 		end
 		
 		if (exist(file,'file') == 0)
-			error(['The file ' file ' could not be found']);
+			error('TBXMANAGER:FILEERROR', ['The file ' file ' could not be found']);
 		end
 	end
 	%read the xml file
