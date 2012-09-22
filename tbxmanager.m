@@ -173,12 +173,20 @@ end
 function main_source(args)
 % manages sources
 %
-%   source show
 %   source add URL
 %   source remove URL
 
+if length(args)~=2
+	error('TBXMANAGER:BADCOMMAND', ...
+		'The "source" command requires two additional inputs.');
+end
+
+% expand the argument, e.g. "a" -> "add", "rem" -> "remove"
+arg_choices = { 'add', 'remove' };
+main_arg = tbx_expandChoice(lower(args{1}), arg_choices);
+
 Setup = tbx_setup;
-switch args{1}
+switch main_arg
 	case 'add',
 		if length(args)<2
 			error('TBXMANAGER:BADCOMMAND', '"source add" requires an URL.');
@@ -192,8 +200,8 @@ switch args{1}
 		tbx_removeSource(Setup.sourcesfile, args{2});
 		
 	otherwise
-		error('TBXMANAGER:BADCOMMAND', 'Unrecognized option "%s". Allowed are "add" and "remove".', ...
-			args{1});
+		error('TBXMANAGER:BADCOMMAND', ...
+			'Unrecognized option "%s". Allowed are "add" and "remove".', main_arg);
 end
 
 end
@@ -308,7 +316,7 @@ end
 
 %%
 function main_show(args)
-% shows available/installed packages
+% shows available/installed/enabled packages or sources
 
 if isempty(args)
 	main_show({'available'});
@@ -317,7 +325,11 @@ if isempty(args)
 	return
 end
 
-switch lower(args{1})
+% expand the argument, e.g. "a" -> "available", "inst" -> "installed"
+arg_choices = { 'available', 'installed', 'enabled', 'sources' };
+main_arg = tbx_expandChoice(lower(args{1}), arg_choices);
+
+switch lower(main_arg)
 	case 'sources'
 		Setup = tbx_setup;
 		fprintf('Active sources:\n\n');
@@ -344,7 +356,8 @@ switch lower(args{1})
 		end
 		return
 	otherwise,
-		error('TBXMANAGER:BADCOMMAND', 'Unknown mode ''%s''. Allowed are ''installed'', ''available'', ''enabled'', ''sources''.', args{1});
+		error('TBXMANAGER:BADCOMMAND', ...
+			'Unknown mode ''%s''. Allowed are ''installed'', ''available'', ''enabled'', ''sources''.', main_arg);
 end
 
 % get just names of toolboxes
