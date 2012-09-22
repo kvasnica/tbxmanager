@@ -1077,9 +1077,13 @@ for i = 1:length(choices)
 	end
 end
 
-if length(candidates)==1
+if isempty(candidates)
+	error('TBXMANAGER:BADCOMMAND', 'Unrecognized command/option "%s".', cmd);
+
+elseif length(candidates)==1
 	% unambiguous choice
 	answer = candidates{1};
+
 else
 	fprintf('\nYou choice "%s" is ambiguous. Possible matches are:\n', cmd);
 	for i = 1:length(candidates)
