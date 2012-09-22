@@ -66,6 +66,19 @@ for i = 1:length(varargin)
 	end
 end
 
+%% expand commands
+supported_commands = {'install', ...
+	'update', ...
+	'restorepath', ...
+	'enable', ...
+	'disable', ...
+	'uninstall', ...
+	'show', ...
+	'source', ...
+	'selfupdate'};
+% expand command name, e.g. "sh" -> "show"
+command = tbx_expandChoice(lower(command), supported_commands);
+
 %% dispatch commands
 args = varargin;
 switch lower(command)
@@ -1032,6 +1045,37 @@ if isempty(archs)
 	end
 end
 fprintf('Toolbox "%s" uninstalled.\n', Toolbox.name);
+
+end
+
+%%
+function answer = tbx_expandChoice(cmd, choices)
+% returns element of cell array "choices" that start with the string "cmd"
+
+candidates = {};
+if ~iscell(choices)
+	choices = { choices };
+end
+for i = 1:length(choices)
+	if length(choices{i}) >= length(cmd)
+		if isequal(choices{i}(1:length(cmd)), cmd)
+			candidates{end+1} = choices{i};
+		end
+	end
+end
+
+if length(candidates)==1
+	% unambiguous choice
+	answer = candidates{1};
+else
+	fprintf('\nYou choice "%s" is ambiguous. Possible matches are:\n', cmd);
+	for i = 1:length(candidates)
+		fprintf('\t%s\n', candidates{i});
+	end
+	fprintf('\n');
+	error('TBXMANAGER:BADCOMMAND', ...
+		'Ambiguous choice, please refine your input.');
+end
 
 end
 
