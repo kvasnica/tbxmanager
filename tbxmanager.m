@@ -789,7 +789,6 @@ else
 end
 
 % is the XML compatible?
-required_version = '1.0';
 Setup = tbx_setup();
 if ~isfield(X, 'tbxmanager') || ...
 		~isfield(X.tbxmanager, 'Attributes') || ...
