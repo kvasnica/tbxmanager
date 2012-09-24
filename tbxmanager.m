@@ -169,7 +169,10 @@ setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
 setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
 
 % version of XML supported by this version of tbxmanager
-setup.max_xml_version = 1.0;
+setup.max_xml_version = 1.1;
+
+% URL of pingback
+setup.server_url = 'http://control.ee.ethz.ch/~mpt/tbx/ping.php';
 
 end
 
@@ -608,6 +611,13 @@ if tbx_isInstalled(Toolbox)
 	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is already installed.', tbx_s2n(Toolbox));
 end
 
+% register start of the installation
+tbx_notifyServer('install-start', 'toolbox', Toolbox.name, ...
+	'identifier', tbx_s2n(Toolbox));
+
+% ask the user to agree with package's license if necessary
+tbx_promptLicense(Toolbox);
+
 % Extract name of the installation package from the URL
 seps = find(Toolbox.url=='/');
 if isempty(seps)
@@ -666,7 +676,63 @@ if isarchive
 	delete(download_to);
 end
 
+% register successful installation
+tbx_notifyServer('install-done', 'toolbox', Toolbox.name, ...
+	'identifier', tbx_s2n(Toolbox));
+
 % TODO: Find and run installation scripts
+
+end
+
+%%
+function tbx_promptLicense(Toolbox)
+% Asks the user to agree with the package's license
+
+% Ask the user to agree to the license
+if ~isempty(Toolbox.license.text)
+	fprintf('You need to agree to the following license to install "%s":\n\n', Toolbox.name);
+	fprintf('%s\n', repmat('-', 1, 80));
+	fprintf('%s\n', Toolbox.license.text);
+	fprintf('%s\n', repmat('-', 1, 80));
+	fprintf('\n');
+	agreed = tbx_ask('Do you agree? [y/n]: ', mfilename, 'y', Toolbox);
+	if isempty(agreed) || lower(agreed(1)) == 'n'
+		tbx_notifyServer('license-notagreedto', 'toolbox', Toolbox.name, ...
+			'identifier', tbx_s2n(Toolbox));
+		error('TBXMANAGER:BADCOMMAND', ...
+			'Cannot install "%s" without agreeing to its license.', ...
+			Toolbox.name);
+	end
+	tbx_notifyServer('license-agreedto', 'toolbox', Toolbox.name, ...
+		'identifier', tbx_s2n(Toolbox));
+end
+
+% Ask the user to register
+if Toolbox.license.require_email
+	fprintf('Installing "%s" requires you to register:\n', Toolbox.name);
+	name = tbx_ask('Your name and surname: ', mfilename, 'name', Toolbox);
+	email = tbx_ask('Your email: ', mfilename, 'email', Toolbox);
+	if isempty(name) || isempty(email)
+		error('TBXMANAGER:BADCOMMAND', ...
+			'Cannot install "%s" without providing a valid name or email.', ...
+			Toolbox.name);
+	end
+	% TODO: send the name/email to the server
+	tbx_notifyServer('license-registered', ...
+		'toolbox', Toolbox.name, ...
+		'identifier', tbx_s2n(Toolbox), ...
+		'name', name, ...
+		'email', email);
+end
+
+end
+
+%%
+function answer = tbx_ask(prompt, func, type, Toolbox)
+% Internal helper for handling inputs from the command window
+
+answer = input(prompt, 's');
+% TODO: auto-complete the inputs when in the test mode
 
 end
 
@@ -808,6 +874,11 @@ if ~iscell(X.tbxmanager.package)
 end
 for i = 1:length(X.tbxmanager.package)
 	name = lower(X.tbxmanager.package{i}.name.Text);
+	if isfield(X.tbxmanager.package{i}, 'license')
+		license = tbx_parseLicense(X.tbxmanager.package{i}.license);
+	else
+		license = tbx_parseLicense([]);
+	end
 	versions = X.tbxmanager.package{i}.version;
 	if ~iscell(versions)
 		versions = { versions };
@@ -822,6 +893,7 @@ for i = 1:length(X.tbxmanager.package)
 			tbx.date = versions{j}.date.Text;
 			tbx.url = versions{j}.url{k}.Text;
 			tbx.arch = lower(versions{j}.url{k}.Attributes.arch);
+			tbx.license = license;
 			if isempty(L)
 				L = tbx;
 			else
@@ -830,6 +902,32 @@ for i = 1:length(X.tbxmanager.package)
 		end
 	end
 end
+end
+
+%%
+function L = tbx_parseLicense(X)
+% Extracts information about package's license from the XML
+
+%default settings
+L.text = []; % text of the license
+L.require_email = false; % true/false whether installing requires registration
+if isempty(X)
+	return
+end
+
+if isfield(X, 'url')
+	license_url = X.url.Text;
+	try
+		L.text = urlread(license_url);
+	catch
+		error('TBXMANAGER:URLERROR', ...
+			'Couldn''t connect to %s', license_url);
+	end
+end
+if isfield(X, 'require_email')
+	L.require_email = eval(X.require_email.Text);
+end
+
 end
 
 %%
@@ -1043,6 +1141,9 @@ if ~tbx_isInstalled(Toolbox)
 	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
 end
 
+tbx_notifyServer('uninstall', 'toolbox', Toolbox.name, ...
+	'identifier', tbx_s2n(Toolbox));
+
 % Delete the arch directory
 [archdir, versiondir, basedir] = tbx_installationDir(Toolbox);
 fprintf('Removing directory "%s"...\n', archdir);
@@ -1097,6 +1198,30 @@ else
 	fprintf('\n');
 	error('TBXMANAGER:BADCOMMAND', ...
 		'Ambiguous choice, please refine your input.');
+end
+
+end
+
+%%
+function tbx_notifyServer(command, varargin)
+% Notifies the server about a command
+
+Setup = tbx_setup();
+
+url = sprintf('%s?command=%s', Setup.server_url, urlencode(command));
+% include parameters
+if ~isempty(varargin)
+	if mod(length(varargin), 2)~=0
+		error('Parameters must come in key/value pairs.');
+	end
+	for i = 1:2:length(varargin)
+		url = sprintf('%s&%s=%s', url, ...
+			urlencode(varargin{i}), urlencode(varargin{i+1}));
+	end
+end
+% call the url
+try
+	urlread(url);
 end
 
 end
