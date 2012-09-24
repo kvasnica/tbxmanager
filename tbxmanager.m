@@ -134,6 +134,46 @@ end
 end
 
 %%
+function setup = tbx_setup(maindir)
+% Sets up parameters of TBXMANAGER
+
+if nargin==0
+	maindir = fileparts(which(mfilename));
+end
+
+% where toolboxes are stored
+setup.tbxdir = [maindir filesep 'toolboxes'];
+if ~exist(setup.tbxdir, 'dir')
+	mkdir(setup.tbxdir);
+end
+
+% where the main tbxmanager directory is
+setup.maindir = maindir;
+
+setup.sourcesfile = [maindir filesep 'tbxsources.txt'];
+try
+	setup.sources = tbx_getSources(setup.sourcesfile);
+catch
+	setup.sources = [];
+end
+if isempty(setup.sources)
+	% default cell list of sources
+	setup.sources = { 'http://control.ee.ethz.ch/~mpt/tbx/ifa.xml' };
+	tbx_writeSources(setup.sourcesfile, setup.sources);
+end
+
+% file where list of enabled toolboxes is stored
+setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
+
+% where on the web is tbxmanager?
+setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
+
+% version of XML supported by this version of tbxmanager
+setup.max_xml_version = 1.0;
+
+end
+
+%%
 function C = tbx_crc32(data)
 % returns CRC32 checksum of given data
 
@@ -203,46 +243,6 @@ switch main_arg
 		error('TBXMANAGER:BADCOMMAND', ...
 			'Unrecognized option "%s". Allowed are "add" and "remove".', main_arg);
 end
-
-end
-
-%%
-function setup = tbx_setup(maindir)
-% Sets up parameters of TBXMANAGER
-
-if nargin==0
-	maindir = fileparts(which(mfilename));
-end
-
-% where toolboxes are stored
-setup.tbxdir = [maindir filesep 'toolboxes'];
-if ~exist(setup.tbxdir, 'dir')
-	mkdir(setup.tbxdir);
-end
-
-% where the main tbxmanager directory is
-setup.maindir = maindir;
-
-setup.sourcesfile = [maindir filesep 'tbxsources.txt'];
-try
-	setup.sources = tbx_getSources(setup.sourcesfile);
-catch
-	setup.sources = [];
-end
-if isempty(setup.sources)
-	% default cell list of sources
-	setup.sources = { 'http://control.ee.ethz.ch/~mpt/tbx/ifa.xml' };
-	tbx_writeSources(setup.sourcesfile, setup.sources);
-end
-
-% file where list of enabled toolboxes is stored
-setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
-
-% where on the web is tbxmanager?
-setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
-
-% version of XML supported by this version of tbxmanager
-setup.max_xml_version = 1.0;
 
 end
 
