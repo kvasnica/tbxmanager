@@ -172,7 +172,7 @@ setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
 setup.max_xml_version = 1.1;
 
 % URL of pingback
-setup.server_url = 'http://control.ee.ethz.ch/~mpt/tbx/ping.php';
+setup.server_url = 'http://www.tbxmanager.com/log.php';
 
 end
 
