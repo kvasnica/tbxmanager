@@ -241,6 +241,9 @@ setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
 % where on the web is tbxmanager?
 setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
 
+% version of XML supported by this version of tbxmanager
+setup.max_xml_version = 1.0;
+
 end
 
 %%
@@ -787,10 +790,13 @@ end
 
 % is the XML compatible?
 required_version = '1.0';
+Setup = tbx_setup();
 if ~isfield(X, 'tbxmanager') || ...
 		~isfield(X.tbxmanager, 'Attributes') || ...
 		~isfield(X.tbxmanager.Attributes, 'version') || ...
-		~isequal(X.tbxmanager.Attributes.version, required_version)
+		isempty(str2num(X.tbxmanager.Attributes.version)) || ...
+		str2num(X.tbxmanager.Attributes.version) > Setup.max_xml_version
+	% version of the XML is newer than the one supported by this tbxmanager
 	fprintf('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
 	fprintf('Run "tbxmanager selfupdate" first.\n');
 	fprintf('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n');
