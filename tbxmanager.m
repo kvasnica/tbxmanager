@@ -254,8 +254,13 @@ function sources = tbx_getSources(fname)
 % returns list of sources loaded from tbxmanager_sources.txt
 
 if exist(fname, 'file')
-	s = textscan(fileread(fname), '%s');
-	sources = s{1};
+	content = fileread(fname);
+	if isempty(content)
+		sources = {};
+	else
+		s = textscan(content, '%s');
+		sources = s{1};
+	end
 else
 	sources = {};
 end
@@ -1030,7 +1035,12 @@ function Enabled = tbx_loadEnabled
 Setup = tbx_setup;
 Enabled = [];
 if exist(Setup.enabledfile, 'file')
-	s = textscan(fileread(Setup.enabledfile), '%s');
+	content = fileread(Setup.enabledfile);
+	if isempty(content)
+		% empty file
+		return
+	end
+	s = textscan(content, '%s');
 	if ~isempty(s)
 		for i = 1:length(s{1})
 			Enabled = [Enabled tbx_n2s(s{1}{i})];
