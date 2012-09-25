@@ -477,7 +477,8 @@ for i = 1:length(names)
 		% install newer version
 		fprintf('Toolbox "%s" has new version "%s", installing...\n', ...
 			Latest.name, Latest.version);
-		tbx_install(Latest);
+		update = true;
+		tbx_install(Latest, update);
 		tbx_addPath(Latest);
 	end
 end
@@ -598,7 +599,7 @@ Latest = List(b(end)); % newest is the last in the list
 end
 
 %%
-function tbx_install(Toolbox)
+function tbx_install(Toolbox, updating)
 % Downloads and installs single toolbox
 %
 % Specification of the input structure:
@@ -607,16 +608,29 @@ function tbx_install(Toolbox)
 %     arch: architecture
 %      url: download url
 
+if nargin<2
+	updating = false;
+end
+
 if tbx_isInstalled(Toolbox)
 	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is already installed.', tbx_s2n(Toolbox));
 end
 
 % register start of the installation
-tbx_notifyServer('install-start', 'toolbox', Toolbox.name, ...
+if updating,
+	command_prefix = 'update';
+else
+	command_prefix = 'install';
+end
+
+tbx_notifyServer([command_prefix '-start'], 'toolbox', Toolbox.name, ...
 	'identifier', tbx_s2n(Toolbox));
 
 % ask the user to agree with package's license if necessary
-tbx_promptLicense(Toolbox);
+if ~updating
+	% only prompt when installing for the first time
+	tbx_promptLicense(Toolbox);
+end
 
 % Extract name of the installation package from the URL
 seps = find(Toolbox.url=='/');
@@ -677,7 +691,7 @@ if isarchive
 end
 
 % register successful installation
-tbx_notifyServer('install-done', 'toolbox', Toolbox.name, ...
+tbx_notifyServer([command_prefix '-done'], 'toolbox', Toolbox.name, ...
 	'identifier', tbx_s2n(Toolbox));
 
 % TODO: Find and run installation scripts
