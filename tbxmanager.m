@@ -418,7 +418,7 @@ for i = 1:length(names)
 	[~, w] = tbx_isOnList(Installed, names{i});
 	if length(w)>1
 		% more than one version installed, add the latest
-		Latest = tbx_getLatestVersion(Instealled, names{i});
+		Latest = tbx_getLatestVersion(Installed, names{i});
 	else
 		Latest = Installed(w);
 	end
