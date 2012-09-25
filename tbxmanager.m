@@ -198,8 +198,10 @@ this_content = fileread(this_file);
 other_content = urlread(Setup.selfurl);
 other_crc = sum(other_content);
 if tbx_crc32(this_content) == tbx_crc32(other_content)
+	tbx_notifyServer('selfupdate-uptodate');
 	fprintf('You already have the newest version of tbxmanager.\n');
 else
+	tbx_notifyServer('selfupdate-new');
 	% make a copy of the current version just to be sure
 	if ~copyfile(this_file, [this_file '.old']);
 		error('TBXMANAGER:FILEERROR', 'Couldn''t back up %s to %s.', this_file, ...
