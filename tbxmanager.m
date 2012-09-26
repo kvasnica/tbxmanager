@@ -137,20 +137,39 @@ end
 function setup = tbx_setup(maindir)
 % Sets up parameters of TBXMANAGER
 
-if nargin==0
+global TBXMANAGER_TESTMODE
+
+setup = [];
+if ~isempty(TBXMANAGER_TESTMODE)
+	maindir = TBXMANAGER_TESTMODE.maindir;
+elseif nargin==0
 	maindir = fileparts(which(mfilename));
 end
 
+% use custom fields when in the test mode
+if ~isempty(TBXMANAGER_TESTMODE)
+	f = fieldnames(TBXMANAGER_TESTMODE);
+	for i = 1:length(f)
+		setup.(f{i}) = TBXMANAGER_TESTMODE.(f{i});
+	end
+end
+
 % where toolboxes are stored
-setup.tbxdir = [maindir filesep 'toolboxes'];
+if ~isfield(setup, 'tbxdir')
+	setup.tbxdir = [maindir filesep 'toolboxes'];
+end
 if ~exist(setup.tbxdir, 'dir')
 	mkdir(setup.tbxdir);
 end
 
 % where the main tbxmanager directory is
-setup.maindir = maindir;
+if ~isfield(setup, 'maindir')
+	setup.maindir = maindir;
+end
 
-setup.sourcesfile = [maindir filesep 'tbxsources.txt'];
+if ~isfield(setup, 'sourcesfile')
+	setup.sourcesfile = [maindir filesep 'tbxsources.txt'];
+end
 try
 	setup.sources = tbx_getSources(setup.sourcesfile);
 catch
@@ -163,16 +182,25 @@ if isempty(setup.sources)
 end
 
 % file where list of enabled toolboxes is stored
-setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
+if ~isfield(setup, 'enabledfile')
+	setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
+end
 
 % where on the web is tbxmanager?
-setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
+if ~isfield(setup, 'selfurl')
+	setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
+end
 
 % version of XML supported by this version of tbxmanager
-setup.max_xml_version = 1.1;
+if ~isfield(setup, 'max_xml_version')
+	setup.max_xml_version = 1.1;
+end
 
 % URL of pingback
-setup.server_url = 'http://www.tbxmanager.com/log.php';
+if ~isfield(setup, 'server_url')
+	setup.server_url = 'http://www.tbxmanager.com/log.php';
+end
+
 
 end
 
