@@ -1,0 +1,19 @@
+  Toolbox manager
+ 
+  Supported commands:
+    tbxmanager install package1 package2 ...
+    tbxmanager show enabled
+    tbxmanager show installed
+    tbxmanager show available
+    tbxmanager show sources
+    tbxmanager update
+    tbxmanager update package1 package2 ...
+    tbxmanager restorepath
+    tbxmanager enable package1 package2 ...
+    tbxmanager disable package1 package2 ...
+    tbxmanager uninstall package1 package2 ...
+    tbxmanager source add URL
+    tbxmanager source remove URL
+    tbxmanager selfupdate
+ 
+  For help, contact michal.kvasnica@stuba.sk

@@ -1,0 +1,34 @@
+--- tbxmanager install 
+
+Error using ==> tbxmanager>validate_notempty at 558
+Name of a toolbox must be provided.
+
+--- tbxmanager uninstall 
+
+Error using ==> tbxmanager>validate_notempty at 558
+Name of a toolbox must be provided.
+
+--- tbxmanager enable 
+
+Error using ==> tbxmanager>validate_notempty at 558
+Name of a toolbox must be provided.
+
+--- tbxmanager disable 
+
+Error using ==> tbxmanager>validate_notempty at 558
+Name of a toolbox must be provided.
+
+--- tbxmanager source 
+
+Error using ==> tbxmanager>main_source at 263
+The "source" command requires two additional inputs.
+
+--- tbxmanager source add 
+
+Error using ==> tbxmanager>main_source at 263
+The "source" command requires two additional inputs.
+
+--- tbxmanager source remove 
+
+Error using ==> tbxmanager>main_source at 263
+The "source" command requires two additional inputs.

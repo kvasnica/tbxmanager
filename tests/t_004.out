@@ -1,0 +1,69 @@
+--- tbxmanager source add http://control.ee.ethz.ch/~mpt/tbx/test/test.xml 
+--- tbxmanager so re http://control.ee.ethz.ch/~mpt/tbx/ifa.xml 
+--- tbxmanager show sources 
+Active sources:
+
+http://control.ee.ethz.ch/~mpt/tbx/test/test.xml
+--- tbxmanager show installed 
+Locally installed packages:
+
+--- tbxmanager show available 
+Packages available for download:
+
+tbx1   Version 1.0       (18-Sep-2012)
+tbx2   Version 1.0       (18-Sep-2012)
+tbx3   Version 2.0       (19-Sep-2012)
+tbx4   Version 1.0       (18-Sep-2012)
+--- tbxmanager install tbx1 tbx2 tbx3 
+
+Installing version "1.0" of "tbx1"...
+Downloading "http://control.ee.ethz.ch/~mpt/tbx/test/tbx1_v1.zip"...
+"tbx1:1.0:all" installed to /Users/michal/matlab/mpt3/hg/tbxmgr-mk/tests/tbxstorage_test/tbx1/1.0/all
+Toolbox "tbx1:1.0:all" added to the Matlab path.
+
+Installing version "1.0" of "tbx2"...
+Downloading "http://control.ee.ethz.ch/~mpt/tbx/test/tbx2_v1.zip"...
+"tbx2:1.0:all" installed to /Users/michal/matlab/mpt3/hg/tbxmgr-mk/tests/tbxstorage_test/tbx2/1.0/all
+Toolbox "tbx2:1.0:all" added to the Matlab path.
+
+Installing version "2.0" of "tbx3"...
+Downloading "http://control.ee.ethz.ch/~mpt/tbx/test/tbx3_v2.tgz"...
+"tbx3:2.0:all" installed to /Users/michal/matlab/mpt3/hg/tbxmgr-mk/tests/tbxstorage_test/tbx3/2.0/all
+Toolbox "tbx3:2.0:all" added to the Matlab path.
+--- tbxmanager in tbx3 
+Latest version of "tbx3" is already installed.
+--- tbxmanager show installed 
+Locally installed packages:
+
+tbx1   Version 1.0       (@current_date@)
+tbx2   Version 1.0       (@current_date@)
+tbx3   Version 2.0       (@current_date@)
+tbx1	tbx2	tbx3
+
+1.0
+
+all
+
+tbx1
+
+d1		d2		tbx1.m		tbx1_v1.m
+
+tbx1	tbx2	tbx3
+
+1.0
+
+all
+
+tbx2
+
+d1		d2		tbx2_v1.m
+
+tbx1	tbx2	tbx3
+
+2.0
+
+all
+
+tbx3
+
+d1	d2	tbx3.m

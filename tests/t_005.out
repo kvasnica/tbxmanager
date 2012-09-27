@@ -1,0 +1,93 @@
+--- tbxmanager source add http://control.ee.ethz.ch/~mpt/tbx/test/test.xml 
+--- tbxmanager so re http://control.ee.ethz.ch/~mpt/tbx/ifa.xml 
+--- tbxmanager show sources 
+Active sources:
+
+http://control.ee.ethz.ch/~mpt/tbx/test/test.xml
+--- tbxmanager show installed 
+Locally installed packages:
+
+--- tbxmanager show enabled 
+List of enabled packages:
+
+--- tbxmanager sh en 
+List of enabled packages:
+
+--- tbxmanager install tbx1 tbx2 tbx3 
+
+Installing version "1.0" of "tbx1"...
+Downloading "http://control.ee.ethz.ch/~mpt/tbx/test/tbx1_v1.zip"...
+"tbx1:1.0:all" installed to /Users/michal/matlab/mpt3/hg/tbxmgr-mk/tests/tbxstorage_test/tbx1/1.0/all
+Toolbox "tbx1:1.0:all" added to the Matlab path.
+
+Installing version "1.0" of "tbx2"...
+Downloading "http://control.ee.ethz.ch/~mpt/tbx/test/tbx2_v1.zip"...
+"tbx2:1.0:all" installed to /Users/michal/matlab/mpt3/hg/tbxmgr-mk/tests/tbxstorage_test/tbx2/1.0/all
+Toolbox "tbx2:1.0:all" added to the Matlab path.
+
+Installing version "2.0" of "tbx3"...
+Downloading "http://control.ee.ethz.ch/~mpt/tbx/test/tbx3_v2.tgz"...
+"tbx3:2.0:all" installed to /Users/michal/matlab/mpt3/hg/tbxmgr-mk/tests/tbxstorage_test/tbx3/2.0/all
+Toolbox "tbx3:2.0:all" added to the Matlab path.
+--- tbxmanager show enabled 
+List of enabled packages:
+
+tbx1   Version 1.0
+tbx2   Version 1.0
+tbx3   Version 2.0
+
+tbx1:1.0:all
+tbx2:1.0:all
+tbx3:2.0:all
+
+--- tbxmanager disable tbx3 
+Toolbox "tbx3:2.0:all" removed from the Matlab path.
+--- tbxmanager show enab 
+List of enabled packages:
+
+tbx1   Version 1.0
+tbx2   Version 1.0
+
+tbx1:1.0:all
+tbx2:1.0:all
+
+--- tbxmanager dis tbx3 
+Toolbox "tbx3:2.0:all" removed from the Matlab path.
+--- tbxmanager sh en 
+List of enabled packages:
+
+tbx1   Version 1.0
+tbx2   Version 1.0
+--- tbxmanager en tbx3 
+Toolbox "tbx3:2.0:all" added to the Matlab path.
+--- tbxmanager sh en 
+List of enabled packages:
+
+tbx1   Version 1.0
+tbx2   Version 1.0
+tbx3   Version 2.0
+
+tbx1:1.0:all
+tbx2:1.0:all
+tbx3:2.0:all
+
+--- tbxmanager en tbx3 
+Toolbox "tbx3:2.0:all" added to the Matlab path.
+--- tbxmanager dis tbx2 tbx3 
+Toolbox "tbx2:1.0:all" removed from the Matlab path.
+Toolbox "tbx3:2.0:all" removed from the Matlab path.
+--- tbxmanager sh en 
+List of enabled packages:
+
+tbx1   Version 1.0
+
+tbx1:1.0:all
+
+--- tbxmanager enable tbx1 tbx2 tbx3 
+Toolbox "tbx1:1.0:all" added to the Matlab path.
+Toolbox "tbx2:1.0:all" added to the Matlab path.
+Toolbox "tbx3:2.0:all" added to the Matlab path.
+--- tbxmanager restorepath 
+Toolbox "tbx1:1.0:all" added to the Matlab path.
+Toolbox "tbx2:1.0:all" added to the Matlab path.
+Toolbox "tbx3:2.0:all" added to the Matlab path.
