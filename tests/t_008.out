@@ -1,0 +1,9 @@
+--- tbxmanager source add http://control.ee.ethz.ch/~mpt/tbx/test/test.xml 
+--- tbxmanager install tbx1 
+
+Installing version "1.0" of "tbx1"...
+Downloading "http://control.ee.ethz.ch/~mpt/tbx/test/tbx1_v1.zip"...
+"tbx1:1.0:all" installed to /Users/michal/matlab/mpt3/hg/tbxmgr-mk/tests/tbxstorage_test/tbx1/1.0/all
+Toolbox "tbx1:1.0:all" added to the Matlab path.
+--- tbxmanager install tbx1 
+Latest version of "tbx1" is already installed.
