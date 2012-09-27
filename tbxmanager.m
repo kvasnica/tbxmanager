@@ -43,6 +43,16 @@ function tbxmanager(command, varargin)
 %     Boston, MA  02111-1307  USA
 % ------------------------------------------------------------------------
 
+global TBXMANAGER_TESTMODE
+if ~isempty(TBXMANAGER_TESTMODE) && nargin>0
+	% print the command line when in the test mode
+	fprintf('--- tbxmanager %s ', command);
+	for i = 1:length(varargin)
+		fprintf('%s ', varargin{i});
+	end
+	fprintf('\n');
+end
+
 %% check if java is running
 if ~usejava('jvm')
     error('TBXMANAGER:NOJAVA', 'Java virtual machine must be running.');
@@ -147,11 +157,13 @@ elseif nargin==0
 end
 
 % use custom fields when in the test mode
+setup.testmode = false;
 if ~isempty(TBXMANAGER_TESTMODE)
 	f = fieldnames(TBXMANAGER_TESTMODE);
 	for i = 1:length(f)
 		setup.(f{i}) = TBXMANAGER_TESTMODE.(f{i});
 	end
+	setup.testmode = true;
 end
 
 % where toolboxes are stored
