@@ -992,7 +992,7 @@ end
 end
 
 %%
-function List = tbx_listInstalled
+function List = tbx_listInstalled(toolboxes)
 % Returns list of installed toolboxes
 %
 % The list is returned as an array of structures:
@@ -1003,7 +1003,13 @@ function List = tbx_listInstalled
 Setup = tbx_setup;
 List = [];
 
-toolboxes = tbx_list_dirs(Setup.tbxdir);
+if nargin==1
+	% only return list of versions for particular toolboxes
+	if ~iscell(toolboxes), toolboxes = { toolboxes }; end
+else
+	toolboxes = tbx_list_dirs(Setup.tbxdir);
+end
+
 for it = 1:length(toolboxes)
 	tbxdir = [Setup.tbxdir filesep toolboxes{it}];
 	versions = tbx_list_dirs(tbxdir);
