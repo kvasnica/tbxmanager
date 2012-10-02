@@ -5,7 +5,7 @@ onCleanup(@(x) tbx_setupTest('done')); tbx_setupTest('start');
 
 % set up the test repo
 tbxmanager source add http://control.ee.ethz.ch/~mpt/tbx/test/test.xml
-tbxmanager so re http://control.ee.ethz.ch/~mpt/tbx/ifa.xml
+tbxmanager so re http://www.tbxmanager.com/package/index.xml 
 tbxmanager show sources
 
 % install two packages

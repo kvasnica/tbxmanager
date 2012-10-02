@@ -189,7 +189,7 @@ catch
 end
 if isempty(setup.sources)
 	% default cell list of sources
-	setup.sources = { 'http://control.ee.ethz.ch/~mpt/tbx/ifa.xml' };
+	setup.sources = { 'http://www.tbxmanager.com/package/index.xml' };
 	tbx_writeSources(setup.sourcesfile, setup.sources);
 end
 
@@ -200,17 +200,17 @@ end
 
 % where on the web is tbxmanager?
 if ~isfield(setup, 'selfurl')
-	setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
+	setup.selfurl = 'http://www.tbxmanager.com/tbxmanager.m';
 end
 
 % version of XML supported by this version of tbxmanager
 if ~isfield(setup, 'max_xml_version')
-	setup.max_xml_version = 1.1;
+	setup.max_xml_version = 1.2;
 end
 
 % URL of pingback
 if ~isfield(setup, 'server_url')
-	setup.server_url = 'http://www.tbxmanager.com/log.php';
+	setup.server_url = 'http://www.tbxmanager.com/package/log';
 end
 
 
@@ -238,10 +238,8 @@ this_content = fileread(this_file);
 other_content = urlread(Setup.selfurl);
 other_crc = sum(other_content);
 if tbx_crc32(this_content) == tbx_crc32(other_content)
-	tbx_notifyServer('selfupdate-uptodate');
 	fprintf('You already have the newest version of tbxmanager.\n');
 else
-	tbx_notifyServer('selfupdate-new');
 	% make a copy of the current version just to be sure
 	if ~copyfile(this_file, [this_file '.old']);
 		error('TBXMANAGER:FILEERROR', 'Couldn''t back up %s to %s.', this_file, ...
@@ -670,9 +668,6 @@ else
 	command_prefix = 'install';
 end
 
-tbx_notifyServer([command_prefix '-start'], 'toolbox', Toolbox.name, ...
-	'identifier', tbx_s2n(Toolbox));
-
 % ask the user to agree with package's license if necessary
 if ~updating
 	% only prompt when installing for the first time
@@ -737,9 +732,7 @@ if isarchive
 	delete(download_to);
 end
 
-% register successful installation
-tbx_notifyServer([command_prefix '-done'], 'toolbox', Toolbox.name, ...
-	'identifier', tbx_s2n(Toolbox));
+tbx_notifyServer(command_prefix, Toolbox);
 
 % TODO: Find and run installation scripts
 
@@ -758,14 +751,11 @@ if ~isempty(Toolbox.license.text)
 	fprintf('\n');
 	agreed = tbx_ask('Do you agree? [y/n]: ', mfilename, 'y', Toolbox);
 	if isempty(agreed) || lower(agreed(1)) == 'n'
-		tbx_notifyServer('license-notagreedto', 'toolbox', Toolbox.name, ...
-			'identifier', tbx_s2n(Toolbox));
 		error('TBXMANAGER:BADCOMMAND', ...
 			'Cannot install "%s" without agreeing to its license.', ...
 			Toolbox.name);
 	end
-	tbx_notifyServer('license-agreedto', 'toolbox', Toolbox.name, ...
-		'identifier', tbx_s2n(Toolbox));
+	tbx_notifyServer('licensed', Toolbox);
 end
 
 % Ask the user to register
@@ -779,11 +769,7 @@ if Toolbox.license.require_email
 			Toolbox.name);
 	end
 	% TODO: send the name/email to the server
-	tbx_notifyServer('license-registered', ...
-		'toolbox', Toolbox.name, ...
-		'identifier', tbx_s2n(Toolbox), ...
-		'name', name, ...
-		'email', email);
+	tbx_notifyServer('register', Toolbox, 'name', name, 'email', email);
 end
 
 end
@@ -940,11 +926,19 @@ for i = 1:length(X.tbxmanager.package)
 	else
 		license = tbx_parseLicense([]);
 	end
+	if ~isfield(X.tbxmanager.package{i}, 'version')
+		% skip packages which have no versions
+		continue
+	end
 	versions = X.tbxmanager.package{i}.version;
 	if ~iscell(versions)
 		versions = { versions };
 	end
 	for j = 1:length(versions)
+		if ~isfield(versions{j}, 'url')
+			% skip versions which have no downloads
+			continue
+		end
 		if ~iscell(versions{j}.url)
 			versions{j}.url = { versions{j}.url };
 		end
@@ -1213,8 +1207,7 @@ if ~tbx_isInstalled(Toolbox)
 	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
 end
 
-tbx_notifyServer('uninstall', 'toolbox', Toolbox.name, ...
-	'identifier', tbx_s2n(Toolbox));
+tbx_notifyServer('uninstall', Toolbox);
 
 % Delete the arch directory
 [archdir, versiondir, basedir] = tbx_installationDir(Toolbox);
@@ -1275,12 +1268,16 @@ end
 end
 
 %%
-function tbx_notifyServer(command, varargin)
+function tbx_notifyServer(command, Toolbox, varargin)
 % Notifies the server about a command
 
 Setup = tbx_setup();
 
-url = sprintf('%s?command=%s', Setup.server_url, urlencode(command));
+url = sprintf('%s/%s?c=%s&v=%s&p=%s', Setup.server_url, ...
+	urlencode(Toolbox.name), ...
+	urlencode(command), ...
+	urlencode(Toolbox.version), ...
+	urlencode(lower(computer)));
 % include parameters
 if ~isempty(varargin)
 	if mod(length(varargin), 2)~=0
