@@ -1,16 +1,16 @@
 --- tbxmanager show sources 
 Active sources:
 
-http://control.ee.ethz.ch/~mpt/tbx/ifa.xml
+http://www.tbxmanager.com/package/index.xml
 --- tbxmanager source add http://control.ee.ethz.ch/~mpt/tbx/test/test.xml 
 --- tbxmanager show sources 
 Active sources:
 
-http://control.ee.ethz.ch/~mpt/tbx/ifa.xml
+http://www.tbxmanager.com/package/index.xml
 http://control.ee.ethz.ch/~mpt/tbx/test/test.xml
 --- tbxmanager source add http://control.ee.ethz.ch/~mpt/tbx/test/test.xml 
 Source "http://control.ee.ethz.ch/~mpt/tbx/test/test.xml" is already on the list.
---- tbxmanager so re http://control.ee.ethz.ch/~mpt/tbx/ifa.xml 
+--- tbxmanager so re http://www.tbxmanager.com/package/index.xml 
 --- tbxmanager show sources 
 Active sources:
 
@@ -19,10 +19,10 @@ http://control.ee.ethz.ch/~mpt/tbx/test/test.xml
 --- tbxmanager show sources 
 Active sources:
 
-http://control.ee.ethz.ch/~mpt/tbx/ifa.xml
+http://www.tbxmanager.com/package/index.xml
 --- tbxmanager so a http://control.ee.ethz.ch/~mpt/tbx/test/test.xml 
 --- tbxmanager sh so 
 Active sources:
 
-http://control.ee.ethz.ch/~mpt/tbx/ifa.xml
+http://www.tbxmanager.com/package/index.xml
 http://control.ee.ethz.ch/~mpt/tbx/test/test.xml

@@ -14,7 +14,7 @@ tbxmanager show sources
 tbxmanager source add http://control.ee.ethz.ch/~mpt/tbx/test/test.xml
 
 % short syntax, remove all sources, the default should stay
-tbxmanager so re http://control.ee.ethz.ch/~mpt/tbx/ifa.xml
+tbxmanager so re http://www.tbxmanager.com/package/index.xml
 tbxmanager show sources
 tbxmanager sour re http://control.ee.ethz.ch/~mpt/tbx/test/test.xml
 tbxmanager show sources
