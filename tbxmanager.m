@@ -55,7 +55,7 @@ end
 
 %% check if java is running
 if ~usejava('jvm')
-    error('TBXMANAGER:NOJAVA', 'Java virtual machine must be running.');
+	error('TBXMANAGER:NOJAVA', 'Java virtual machine must be running.');
 end
 
 %% add self to path
@@ -416,6 +416,7 @@ names = unique(arrayfun(@(x) x.name, L, 'UniformOutput', false));
 maxname = max(cellfun('length', names));
 for i = 1:length(names)
 	Latest = tbx_getLatestVersion(L, names{i});
+	if isempty(Latest), continue, end
 	fprintf('%s %s Version %s', Latest.name, ...
 		repmat(' ', 1, max(1, 1+maxname-length(Latest.name))), ...
 		Latest.version);
@@ -438,6 +439,11 @@ validate_available(names);
 Available = tbx_listAvailable();
 for i = 1:length(names)
 	Latest = tbx_getLatestVersion(Available, names{i});
+	if isempty(Latest)
+		error('TBXMANAGER:BADCOMMAND', ...
+			'Toolbox "%s" is not available for your platform.', ...
+			names{i});
+	end
 	if tbx_isInstalled(Latest)
 		fprintf('Latest version of "%s" is already installed.\n', names{i});
 	else
@@ -516,6 +522,7 @@ validate_installed(names);
 Available = tbx_listAvailable();
 for i = 1:length(names)
 	Latest = tbx_getLatestVersion(Available, names{i});
+	if isempty(Latest), continue, end
 	if tbx_isInstalled(Latest)
 		fprintf('No new version for toolbox "%s".\n', names{i});
 	else
@@ -632,6 +639,10 @@ for i = 1:length(List)
 	end
 end
 List = List(candidates);
+if isempty(List)
+	Latest = List;
+	return
+end
 
 % get the latest version
 dates = zeros(1, length(List));
