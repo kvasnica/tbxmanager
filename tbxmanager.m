@@ -460,7 +460,7 @@ validate_installed(names);
 
 Installed = tbx_listInstalled();
 for i = 1:length(names)
-	[~, w] = tbx_isOnList(Installed, names{i});
+	[dummy, w] = tbx_isOnList(Installed, names{i});
 	if length(w)>1
 		% more than one version installed, add the latest
 		Latest = tbx_getLatestVersion(Installed, names{i});
@@ -481,7 +481,7 @@ validate_installed(names);
 
 Installed = tbx_listInstalled();
 for i = 1:length(names)
-	[~, w] = tbx_isOnList(Installed, names{i});
+	[dummy, w] = tbx_isOnList(Installed, names{i});
 	if length(w)>1
 		% more than one version installed, add the latest
 		Latest = tbx_getLatestVersion(Installed, names{i});
@@ -540,7 +540,7 @@ validate_installed(names);
 Installed = tbx_listInstalled();
 for i = 1:length(names)
 	% get all installed versions
-	[~, w] = tbx_isOnList(Installed, names{i});
+	[dummy, w] = tbx_isOnList(Installed, names{i});
 	for j = 1:length(w)
 		fprintf('\n');
 		Toolbox = Installed(w(j));
@@ -600,7 +600,7 @@ if ~tbx_isInstalled(Toolbox)
 end
 
 % remove any previous instances of this toolbox from the path
-[archdir, ~, basedir] = tbx_installationDir(Toolbox);
+[archdir, dummy, basedir] = tbx_installationDir(Toolbox);
 w = warning; warning('off');
 rmpath(genpath(basedir));
 warning(w);
@@ -638,7 +638,7 @@ dates = zeros(1, length(List));
 for i = 1:length(List)
 	dates(i) = datenum(List(i).date);
 end
-[~, b] = sort(dates);
+[a, b] = sort(dates);
 Latest = List(b(end)); % newest is the last in the list
 
 end
@@ -1250,11 +1250,11 @@ end
 
 if isempty(candidates)
 	error('TBXMANAGER:BADCOMMAND', 'Unrecognized command/option "%s".', cmd);
-
+	
 elseif length(candidates)==1
 	% unambiguous choice
 	answer = candidates{1};
-
+	
 else
 	fprintf('\nYou choice "%s" is ambiguous. Possible matches are:\n', cmd);
 	for i = 1:length(candidates)
