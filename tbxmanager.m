@@ -200,7 +200,7 @@ end
 
 % where on the web is tbxmanager?
 if ~isfield(setup, 'selfurl')
-	setup.selfurl = 'http://control.ee.ethz.ch/~mpt/tbx/tbxmanager.m';
+	setup.selfurl = 'http://www.tbxmanager.com/tbxmanager.m';
 end
 
 % version of XML supported by this version of tbxmanager
