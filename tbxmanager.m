@@ -984,7 +984,7 @@ end
 if isfield(X, 'url')
 	license_url = X.url.Text;
 	try
-		L.text = urlread(license_url);
+		L.text = deblank(urlread(license_url));
 	catch
 		error('TBXMANAGER:URLERROR', ...
 			'Couldn''t connect to %s', license_url);
