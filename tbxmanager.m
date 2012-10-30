@@ -975,7 +975,7 @@ function L = tbx_parseLicense(X)
 % Extracts information about package's license from the XML
 
 %default settings
-L.text = []; % text of the license
+L.text = ''; % text of the license
 L.require_email = false; % true/false whether installing requires registration
 if isempty(X)
 	return
@@ -993,6 +993,9 @@ end
 if isfield(X, 'require_email')
 	L.require_email = eval(X.require_email.Text);
 end
+% replace '\r\n' by '\n', otherwise new-line characters would display two
+% empty lines (thanks F. Ullmann)
+L.text = regexprep(L.text, '\r\n', '\n');
 
 end
 
