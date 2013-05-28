@@ -53,11 +53,6 @@ if ~isempty(TBXMANAGER_TESTMODE) && nargin>0
 	fprintf('\n');
 end
 
-%% check if java is running
-if ~usejava('jvm')
-	error('TBXMANAGER:NOJAVA', 'Java virtual machine must be running.');
-end
-
 %% add self to path
 addpath(fileparts(which(mfilename)));
 
@@ -93,8 +88,10 @@ command = tbx_expandChoice(lower(command), supported_commands);
 args = varargin;
 switch lower(command)
 	case 'install',
+		requires_java;
 		cmd = @main_install;
 	case 'update',
+		requires_java;
 		if isempty(args)
 			cmd = @main_updateall;
 		else
@@ -113,6 +110,7 @@ switch lower(command)
 	case 'source'
 		cmd = @main_source;
 	case 'selfupdate'
+		requires_java;
 		cmd = @main_selfupdate;
 	otherwise
 		help(mfilename);
@@ -1285,6 +1283,11 @@ end
 function tbx_notifyServer(command, Toolbox, varargin)
 % Notifies the server about a command
 
+% requires java
+if ~usejava('jvm')
+	return
+end
+
 Setup = tbx_setup();
 
 url = sprintf('%s/%s?c=%s&v=%s&p=%s', Setup.server_url, ...
@@ -1305,6 +1308,15 @@ end
 % call the url
 try
 	urlread(url);
+end
+
+end
+
+%%
+function requires_java
+
+if ~usejava('jvm')
+	error('TBXMANAGER:NOJAVA', 'This function requires the Java virtual machine.');
 end
 
 end
