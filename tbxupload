@@ -1,3 +1,3 @@
 #!/bin/sh
 scp tbxmanager.m mpt@autserv01.ee.ethz.ch:/home/mpt/public_html/tbx/
-scp tbxmanager.m tbxmanager@h1:/export/home/tbxmanager/tbxmanager/static/
+scp tbxmanager.m tbxmanager@kirp:/home/tbxmanager/web2py/applications/tbxmanager/static/
