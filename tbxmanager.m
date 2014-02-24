@@ -1,4 +1,4 @@
-function tbxmanager(command, varargin)
+function cmdout = tbxmanager(command, varargin)
 % Toolbox manager
 %
 % Supported commands:
@@ -10,6 +10,7 @@ function tbxmanager(command, varargin)
 %   tbxmanager update
 %   tbxmanager update package1 package2 ...
 %   tbxmanager restorepath
+%   tbxmanager generatepath
 %   tbxmanager enable package1 package2 ...
 %   tbxmanager disable package1 package2 ...
 %   tbxmanager uninstall package1 package2 ...
@@ -21,7 +22,7 @@ function tbxmanager(command, varargin)
 
 % Copyright is with the following author(s):
 %
-% (c) 2012 Michal Kvasnica, Slovak University of Technology in Bratislava
+% (c) 2012-2014 Michal Kvasnica, Slovak University of Technology in Bratislava
 %          michal.kvasnica@stuba.sk
 
 % ------------------------------------------------------------------------
@@ -75,6 +76,7 @@ end
 supported_commands = {'install', ...
 	'update', ...
 	'restorepath', ...
+    'generatepath', ...
 	'enable', ...
 	'disable', ...
 	'uninstall', ...
@@ -99,6 +101,8 @@ switch lower(command)
 		end
 	case 'restorepath',
 		cmd = @tbx_restorePath;
+    case 'generatepath',
+        cmd = @main_generatePath;
 	case 'enable',
 		cmd = @main_addpath;
 	case 'disable',
@@ -119,7 +123,11 @@ end
 
 % safely execute the command
 try
-	feval(cmd, args);
+    if nargout==0
+        feval(cmd, args);
+    else
+        cmdout = feval(cmd, args);
+    end
 catch
 	err = lasterror;
 	if ~isempty(err.identifier) && isempty(strfind(err.identifier, 'TBXMANAGER'))
@@ -137,6 +145,10 @@ catch
 		fprintf('\n%s\n\n', err.message);
 		error('TBXMANAGER:ERROR', 'Cannot continue, see message above.');
 	end
+end
+
+if nargout==0
+    clear cmdout
 end
 
 end
@@ -588,6 +600,24 @@ for i = 1:length(names)
 		error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', names{i});
 	end
 end
+
+end
+
+%%
+function P = tbx_genPath(Toolbox)
+% Returns path to all subdirectories of a given toolbox
+%
+% Specification of the input structure:
+%     name: short toolbox name
+%  version: version id
+%     arch: architecture
+
+if ~tbx_isInstalled(Toolbox)
+	error('TBXMANAGER:BADCOMMAND', 'Toolbox "%s" is not installed.', tbx_s2n(Toolbox));
+end
+
+[archdir, dummy, basedir] = tbx_installationDir(Toolbox);
+P = genpath([archdir filesep]);
 
 end
 
@@ -1163,6 +1193,18 @@ function tbx_restorePath(args)
 Enabled = tbx_loadEnabled;
 for i = 1:length(Enabled)
 	tbx_addPath(Enabled(i));
+end
+
+end
+
+%%
+function P = main_generatePath(args)
+% Generates path to all enabled toolboxes
+
+P = '';
+Enabled = tbx_loadEnabled;
+for i = 1:length(Enabled)
+	P = [P, tbx_genPath(Enabled(i))];
 end
 
 end
