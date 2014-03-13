@@ -432,7 +432,7 @@ for i = 1:length(names)
 		Latest.version);
 	if isfield(Latest, 'date')
 		fprintf('%s(%s)', repmat(' ', 1, max(1, 10-length(Latest.version))), ...
-			datestr(datenum(Latest.date), 1));
+			datestr(Latest.datenum, 1));
 	end
 	fprintf('\n');
 end
@@ -675,7 +675,7 @@ end
 % get the latest version
 dates = zeros(1, length(List));
 for i = 1:length(List)
-	dates(i) = datenum(List(i).date);
+	dates(i) = List(i).datenum;
 end
 [a, b] = sort(dates);
 Latest = List(b(end)); % newest is the last in the list
@@ -985,6 +985,7 @@ for i = 1:length(X.tbxmanager.package)
 			tbx.name = name;
 			tbx.version = versions{j}.id.Text;
 			tbx.date = versions{j}.date.Text;
+            tbx.datenum = datenum(tbx.date);
 			tbx.url = versions{j}.url{k}.Text;
 			tbx.arch = lower(versions{j}.url{k}.Attributes.arch);
 			tbx.license = license;
@@ -1050,12 +1051,13 @@ for it = 1:length(toolboxes)
 	tbxdir = [Setup.tbxdir filesep toolboxes{it}];
 	versions = tbx_list_dirs(tbxdir);
 	for iv = 1:length(versions)
-		[archs, dates] = tbx_list_dirs([tbxdir filesep versions{iv}]);
+		[archs, dates, datenums] = tbx_list_dirs([tbxdir filesep versions{iv}]);
 		for ia = 1:length(archs)
 			L.name = toolboxes{it};
 			L.version = versions{iv};
 			L.arch = archs{ia};
 			L.date = dates{ia};
+            L.datenum = datenums{ia};
 			if isempty(List)
 				List = L;
 			else
@@ -1068,17 +1070,19 @@ end
 end
 
 %%
-function [out, dates] = tbx_list_dirs(d)
+function [out, dates, datenums] = tbx_list_dirs(d)
 % Helper to list all subdirectories of directory 'd'
 
 dirs = dir(d);
 out = {};
 dates = {};
+datenums = {};
 for i = 1:length(dirs)
 	if dirs(i).isdir && ~isequal(dirs(i).name, '.') && ...
 			~isequal(dirs(i).name, '..');
 		out{end+1} = dirs(i).name;
 		dates{end+1} = dirs(i).date;
+        datenums{end+1} = dirs(i).datenum;
 	end
 end
 
