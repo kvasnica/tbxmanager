@@ -275,11 +275,14 @@ function main_require(packages)
 validate_notempty(packages);
 
 enabled = tbx_loadEnabled();
-installed = tbx_listInstalled();
+installed = [];
 for i = 1:length(packages)
     pkg = packages{i};
     % convert string name to structure
     if ~tbx_isOnList(enabled, pkg)
+        if isempty(installed)
+            installed = tbx_listInstalled();
+        end
         if tbx_isOnList(installed, pkg)
             % the package is installed but not enabled
             fprintf('\nEnabled the required package by "tbxmanager enable %s"\n', pkg);
