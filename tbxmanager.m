@@ -17,6 +17,7 @@ function cmdout = tbxmanager(command, varargin)
 %   tbxmanager source add URL
 %   tbxmanager source remove URL
 %   tbxmanager selfupdate
+%   tbxmanager require package1 package2 ...
 %
 % For help, contact michal.kvasnica@stuba.sk
 
@@ -82,6 +83,7 @@ supported_commands = {'install', ...
 	'uninstall', ...
 	'show', ...
 	'source', ...
+    'require', ...
 	'selfupdate'};
 % expand command name, e.g. "sh" -> "show"
 command = tbx_expandChoice(lower(command), supported_commands);
@@ -113,6 +115,8 @@ switch lower(command)
 		cmd = @main_show;
 	case 'source'
 		cmd = @main_source;
+    case 'require'
+        cmd = @main_require;
 	case 'selfupdate'
 		requires_java;
 		cmd = @main_selfupdate;
@@ -258,6 +262,33 @@ else
 	urlwrite(Setup.selfurl, this_file);
 	rehash
 	fprintf('tbxmanager updated to latest version.\n');
+end
+
+end
+
+%%
+function main_require(packages)
+% Throws an error if any of the listed packages is not enabled/installed
+%
+%   tbxmanager require package1 package2 ...
+
+validate_notempty(packages);
+
+enabled = tbx_loadEnabled();
+installed = tbx_listInstalled();
+for i = 1:length(packages)
+    pkg = packages{i};
+    % convert string name to structure
+    if ~tbx_isOnList(enabled, pkg)
+        if tbx_isOnList(installed, pkg)
+            % the package is installed but not enabled
+            fprintf('\nEnabled the required package by "tbxmanager enable %s"\n', pkg);
+        else
+            % the package is not even installed
+            fprintf('\nInstall the required package by "tbxmanager install %s"\n', pkg);
+        end
+        error('TBXMANAGER:MissingPackage', 'Required package "%s" not found.', packages{i});
+    end
 end
 
 end
