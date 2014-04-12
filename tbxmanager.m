@@ -1179,7 +1179,7 @@ function tbx_writeEnabled(Enabled)
 Setup = tbx_setup;
 fid = fopen(Setup.enabledfile, 'w');
 if fid < 0
-	error('TBXMANAGER:FILEERROR', 'Couldn''t open %s for writing.', fname);
+	error('TBXMANAGER:FILEERROR', 'Couldn''t open %s for writing.', Setup.enabledfile);
 end
 for i = 1:length(Enabled)
 	fprintf(fid, '%s\n', tbx_s2n(Enabled(i)));
