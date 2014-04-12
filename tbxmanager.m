@@ -403,9 +403,8 @@ main_arg = tbx_expandChoice(lower(args{1}), arg_choices);
 
 switch lower(main_arg)
 	case 'sources'
-		Setup = tbx_setup;
 		fprintf('Active sources:\n\n');
-		sources = Setup.sources;
+		sources = tbx_getSources();
 		for i = 1:length(sources)
 			fprintf('%s\n', sources{i});
 		end
