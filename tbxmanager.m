@@ -379,7 +379,7 @@ end
 % load the sources
 sources = tbx_getSources(fname);
 % is the source there?
-if ~isempty(strmatch(source, sources))
+if isempty(setdiff({source}, sources))
 	fprintf('Source "%s" is already on the list.\n', source);
 else
 	% add it
