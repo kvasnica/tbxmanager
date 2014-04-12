@@ -45,18 +45,13 @@ function cmdout = tbxmanager(command, varargin)
 %     Boston, MA  02111-1307  USA
 % ------------------------------------------------------------------------
 
-global TBXMANAGER_TESTMODE
-if ~isempty(TBXMANAGER_TESTMODE) && nargin>0
-	% print the command line when in the test mode
-	fprintf('--- tbxmanager %s ', command);
-	for i = 1:length(varargin)
-		fprintf('%s ', varargin{i});
-	end
-	fprintf('\n');
-end
-
 %% add self to path
-addpath(fileparts(which(mfilename)));
+ourPath = fileparts(which(mfilename));
+if isempty(strfind(path, ourPath))
+    addpath(ourPath);
+end
+% prepare the setup
+tbx_setup(ourPath);
 
 if nargin==0
 	help(mfilename);
@@ -161,72 +156,43 @@ end
 function setup = tbx_setup(maindir)
 % Sets up parameters of TBXMANAGER
 
-global TBXMANAGER_TESTMODE
+persistent cached_setup
+
+if nargin==0
+    setup = cached_setup;
+    return
+end    
 
 setup = [];
-if ~isempty(TBXMANAGER_TESTMODE)
-	maindir = TBXMANAGER_TESTMODE.maindir;
-elseif nargin==0
-	maindir = fileparts(which(mfilename));
-end
-
-% use custom fields when in the test mode
-setup.testmode = false;
-if ~isempty(TBXMANAGER_TESTMODE)
-	f = fieldnames(TBXMANAGER_TESTMODE);
-	for i = 1:length(f)
-		setup.(f{i}) = TBXMANAGER_TESTMODE.(f{i});
-	end
-	setup.testmode = true;
-end
 
 % where toolboxes are stored
-if ~isfield(setup, 'tbxdir')
-	setup.tbxdir = [maindir filesep 'toolboxes'];
-end
+setup.tbxdir = [maindir filesep 'toolboxes'];
 if ~exist(setup.tbxdir, 'dir')
 	mkdir(setup.tbxdir);
 end
 
 % where the main tbxmanager directory is
-if ~isfield(setup, 'maindir')
-	setup.maindir = maindir;
-end
+setup.maindir = maindir;
 
-if ~isfield(setup, 'sourcesfile')
-	setup.sourcesfile = [maindir filesep 'tbxsources.txt'];
-end
-try
-	setup.sources = tbx_getSources(setup.sourcesfile);
-catch
-	setup.sources = [];
-end
-if isempty(setup.sources)
-	% default cell list of sources
-	setup.sources = { 'http://www.tbxmanager.com/package/index.xml' };
-	tbx_writeSources(setup.sourcesfile, setup.sources);
-end
+% file where available sources are stored
+setup.sourcesfile = [maindir filesep 'tbxsources.txt'];
 
 % file where list of enabled toolboxes is stored
-if ~isfield(setup, 'enabledfile')
-	setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
-end
+setup.enabledfile = [maindir filesep 'tbxenabled.txt'];
 
 % where on the web is tbxmanager?
-if ~isfield(setup, 'selfurl')
-	setup.selfurl = 'http://www.tbxmanager.com/tbxmanager.m';
-end
+setup.selfurl = 'http://www.tbxmanager.com/tbxmanager.m';
 
 % version of XML supported by this version of tbxmanager
-if ~isfield(setup, 'max_xml_version')
-	setup.max_xml_version = 1.2;
-end
+setup.max_xml_version = 1.2;
 
 % URL of pingback
-if ~isfield(setup, 'server_url')
-	setup.server_url = 'http://www.tbxmanager.com/package/log';
-end
+setup.server_url = 'http://www.tbxmanager.com/package/log';
 
+% default package sources
+setup.defaultsources = { 'http://www.tbxmanager.com/package/index.xml' };
+
+cached_setup = setup;
 
 end
 
@@ -318,13 +284,13 @@ switch main_arg
 		if length(args)<2
 			error('TBXMANAGER:BADCOMMAND', '"source add" requires an URL.');
 		end
-		tbx_addSource(Setup.sourcesfile, args{2});
+		tbx_addSource(args{2});
 		
 	case 'remove'
 		if length(args)<2
 			error('TBXMANAGER:BADCOMMAND', '"source remove" requires an URL.');
 		end
-		tbx_removeSource(Setup.sourcesfile, args{2});
+		tbx_removeSource(args{2});
 		
 	otherwise
 		error('TBXMANAGER:BADCOMMAND', ...
@@ -334,8 +300,11 @@ end
 end
 
 %%
-function sources = tbx_getSources(fname)
-% returns list of sources loaded from tbxmanager_sources.txt
+function sources = tbx_getSources()
+% returns call array of sources loaded from tbxmanager_sources.txt
+
+setup = tbx_setup();
+fname = setup.sourcesfile;
 
 if exist(fname, 'file')
 	content = fileread(fname);
@@ -349,12 +318,20 @@ else
 	sources = {};
 end
 
+if isempty(sources)
+	% default cell list of sources
+	sources = setup.defaultsources;
+	tbx_writeSources(sources);
+end
+
 end
 
 %%
-function tbx_writeSources(fname, sources)
+function tbx_writeSources(sources)
 % writes list of soruces to tbxmanager_sources.txt
 
+setup = tbx_setup();
+fname = setup.sourcesfile;
 fid = fopen(fname, 'w');
 if fid < 0
 	error('TBXMANAGER:FILEERROR', 'Couldn''t open %s for writing.', fname);
@@ -367,7 +344,7 @@ fclose(fid);
 end
 
 %%
-function tbx_addSource(fname, source)
+function tbx_addSource(source)
 % adds the source to tbxmanager_sources.txt
 
 % is the source valid?
@@ -377,7 +354,7 @@ catch
 	error('TBXMANAGER:URLERROR', 'Unable to connect to %s', source);
 end
 % load the sources
-sources = tbx_getSources(fname);
+sources = tbx_getSources();
 % is the source there?
 if isempty(setdiff({source}, sources))
 	fprintf('Source "%s" is already on the list.\n', source);
@@ -385,17 +362,17 @@ else
 	% add it
 	sources{end+1} = source;
 	% and write back
-	tbx_writeSources(fname, sources);
+	tbx_writeSources(sources);
 end
 
 end
 
 %%
-function tbx_removeSource(fname, source)
+function tbx_removeSource(source)
 % removes the source from tbxmanager_sources.txt
 
 % load the sources
-sources = tbx_getSources(fname);
+sources = tbx_getSources();
 nbefore = length(sources);
 % remove the source
 sources = setdiff(sources, source);
@@ -404,7 +381,7 @@ if length(sources)==nbefore
 	fprintf('Source "%s" is not on the list.\n', source);
 else
 	% and write back
-	tbx_writeSources(fname, sources);
+	tbx_writeSources(sources);
 end
 
 end
@@ -943,16 +920,12 @@ function L = tbx_listAvailable
 % Loads list of toolboxes from a given source (URL or file)
 
 % TODO: support multiple sources
-Setup = tbx_setup;
-if ~iscell(Setup.sources)
-	Setup.source = { Setup.sources };
-end
+sources = tbx_getSources();
 
-L = tbx_loadSource(Setup.sources{1});
-for i = 2:length(Setup.sources)
-	L = [L tbx_loadSource(Setup.sources{i})];
+L = tbx_loadSource(sources{1});
+for i = 2:length(sources)
+	L = [L tbx_loadSource(sources{i})];
 end
-L;
 
 end
 
@@ -1154,20 +1127,22 @@ end
 function Enabled = tbx_loadEnabled
 % Loads list of enabled toolboxes
 
-Setup = tbx_setup;
+Setup = tbx_setup();
 Enabled = [];
-if exist(Setup.enabledfile, 'file')
-	content = fileread(Setup.enabledfile);
-	if isempty(content)
-		% empty file
-		return
-	end
-	s = textscan(content, '%s');
-	if ~isempty(s)
-		for i = 1:length(s{1})
-			Enabled = [Enabled tbx_n2s(s{1}{i})];
-		end
-	end
+try
+    content = fileread(Setup.enabledfile);
+catch
+    content = [];
+end
+if isempty(content)
+    % empty file
+    return
+end
+s = textscan(content, '%s');
+if ~isempty(s)
+    for i = 1:length(s{1})
+        Enabled = [Enabled tbx_n2s(s{1}{i})];
+    end
 end
 
 end
