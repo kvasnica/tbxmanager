@@ -45,6 +45,8 @@ function cmdout = tbxmanager(command, varargin)
 %     Boston, MA  02111-1307  USA
 % ------------------------------------------------------------------------
 
+cmdout = [];
+
 %% add self to path
 ourPath = fileparts(which(mfilename));
 if isempty(strfind(path, ourPath))
@@ -55,6 +57,9 @@ tbx_setup(ourPath);
 
 if nargin==0
 	help(mfilename);
+    if nargout==0
+        clear cmdout
+    end
 	return
 end
 
