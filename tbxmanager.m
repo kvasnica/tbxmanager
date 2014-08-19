@@ -1283,7 +1283,13 @@ tbx_notifyServer('uninstall', Toolbox);
 % Delete the arch directory
 [archdir, versiondir, basedir] = tbx_installationDir(Toolbox);
 fprintf('Removing directory "%s"...\n', archdir);
-rmdir(archdir, 's');
+try
+    rmdir(archdir, 's');
+catch
+    fprintf('Clearing functions from the memory...\n');
+    clear functions
+    rmdir(archdir, 's');
+end
 
 % Did we delete the last architecture of the version?
 archs = tbx_list_dirs(versiondir);
