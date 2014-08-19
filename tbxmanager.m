@@ -1145,6 +1145,8 @@ end
 s = textscan(content, '%s');
 if ~isempty(s)
     for i = 1:length(s{1})
+        % fix a weird error when settings were saved in R2014a
+        s{1}{i}(s{1}{i}==0) = '';
         Enabled = [Enabled tbx_n2s(s{1}{i})];
     end
 end
