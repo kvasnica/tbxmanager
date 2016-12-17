@@ -1,4 +1,0 @@
-#!/bin/sh
-hg push mpt
-hg push bitbucket
-
