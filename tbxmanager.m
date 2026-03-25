@@ -220,28 +220,38 @@ function tbx_writeJson(filePath, data)
 end
 
 function data = tbx_fetchJson(url)
-%TBX_FETCHJSON  Fetch and decode JSON from a URL.
+%TBX_FETCHJSON  Fetch and decode JSON from a URL (or file:// path).
     arguments
         url (1,1) string
     end
     try
-        opts = weboptions("Timeout", 30, "ContentType", "json");
-        data = webread(url, opts);
+        if startsWith(url, "file://")
+            localPath = extractAfter(url, "file://");
+            data = jsondecode(fileread(localPath));
+        else
+            opts = weboptions("Timeout", 30, "ContentType", "json");
+            data = webread(url, opts);
+        end
     catch ME
         error("TBXMANAGER:FetchFailed", "Failed to fetch %s: %s", url, ME.message);
     end
 end
 
 function destPath = tbx_downloadFile(url, destPath)
-%TBX_DOWNLOADFILE  Download a file from URL to destPath.
+%TBX_DOWNLOADFILE  Download a file from URL (or file:// path) to destPath.
     arguments
         url (1,1) string
         destPath (1,1) string
     end
     tbx_printf("  Downloading %s ...\n", url);
     try
-        opts = weboptions("Timeout", 120);
-        websave(destPath, url, opts);
+        if startsWith(url, "file://")
+            localPath = extractAfter(url, "file://");
+            copyfile(localPath, destPath);
+        else
+            opts = weboptions("Timeout", 120);
+            websave(destPath, url, opts);
+        end
     catch ME
         error("TBXMANAGER:DownloadFailed", "Failed to download %s: %s", url, ME.message);
     end
@@ -659,7 +669,7 @@ function plan = tbx_resolve(requested, index)
             error("TBXMANAGER:NoVersions", ...
                 "Package '%s' has no versions available.", pkgName);
         end
-        allVersions = string(fieldnames(pkgInfo.versions));
+        allVersions = tbx_unmangleVersions(fieldnames(pkgInfo.versions));
         allVersions = tbx_sortVersionsDesc(allVersions);
 
         % Find latest version satisfying constraint + platform + MATLAB
@@ -751,6 +761,25 @@ function plan = tbx_resolve(requested, index)
 
     % Topological sort for install order
     plan = tbx_toposort(plan);
+end
+
+function versions = tbx_unmangleVersions(fieldNames)
+%TBX_UNMANGLEVERSIONS  Convert jsondecode-mangled field names back to versions.
+%   "x1_0_0" -> "1.0.0", "x3_1" -> "3.1"
+    versions = string(fieldNames);
+    for i = 1:numel(versions)
+        v = versions(i);
+        % Remove leading 'x' added by makeValidName for numeric-start names
+        if startsWith(v, "x") && strlength(v) > 1
+            rest = extractAfter(v, 1);
+            % Replace underscores with dots
+            candidate = replace(rest, "_", ".");
+            % Verify it looks like a version number
+            if ~isnan(str2double(extractBefore(candidate + ".", ".")))
+                versions(i) = candidate;
+            end
+        end
+    end
 end
 
 function vInfo = tbx_getVersionField(versions, versionStr)
@@ -1593,7 +1622,7 @@ function main_info(args)
 
     if isfield(pkg, "versions")
         tbx_printf("\nAvailable versions:\n");
-        verNames = string(fieldnames(pkg.versions));
+        verNames = tbx_unmangleVersions(fieldnames(pkg.versions));
         verNames = tbx_sortVersionsDesc(verNames);
         for i = 1:numel(verNames)
             v = verNames(i);
