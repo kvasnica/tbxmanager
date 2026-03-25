@@ -90,11 +90,48 @@ Sections in order:
 - Mock data in `tests/fixtures/`
 - CI: GitHub Actions with `matlab-actions/setup-matlab@v2`
 
+## CI/CD Workflows (`.github/workflows/`)
+
+### `test.yml` — Lint + MATLAB Tests
+
+- **Triggers:** push to `dev`/`master`, PRs to `dev`
+- **lint job:** ruff check, JSON schema metavalidation, fixture validation (uv cached)
+- **matlab job:** 2 releases × 3 OSes matrix with MATLAB setup caching
+- Reusable: called by `release.yml` via `uses: ./.github/workflows/test.yml`
+
+### `deploy-site.yml` — Documentation
+
+- **Triggers:** push to `master`, manual dispatch
+- Builds mkdocs-material with uv (cached), deploys to GitHub Pages
+- Copies `tbxmanager.m` into site root for direct download
+
+### `release.yml` — Version Bump + GitHub Release
+
+- **Triggers:** automatic on push to `master`
+- **Guard:** skips if commit message starts with `bump:` (prevents infinite loop)
+- Uses `commitizen-tools/commitizen-action@master` with `PERSONAL_ACCESS_TOKEN`
+- Generates changelog increment (`body.md`) and creates GitHub Release with `tbxmanager.m`
+- **Requires:** `PERSONAL_ACCESS_TOKEN` repo secret (PAT with repo scope — `GITHUB_TOKEN` won't trigger downstream workflows)
+
+### Flow
+
+```text
+PR to dev  ──→  test.yml (lint + MATLAB matrix)
+                    │
+merge to master ──→ deploy-site.yml (docs)
+                ──→ release.yml (auto bump + changelog + GitHub Release)
+```
+
+### Caching
+
+- **uv:** `astral-sh/setup-uv@v6` with `enable-cache: true` (test, deploy-site)
+- **MATLAB:** `matlab-actions/setup-matlab@v2` with `cache: true`
+
 ## Git Workflow
 
 - Feature branches off `dev`
 - PRs to `dev`
-- Releases: merge `dev` → `master`, tag `v*`
+- Releases: merge `dev` → `master` triggers automatic version bump
 - Main branch: `master`
 
 ### Commit Policy (MANDATORY)

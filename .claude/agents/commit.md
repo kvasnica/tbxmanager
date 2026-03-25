@@ -123,17 +123,14 @@ Always include the `Co-Authored-By` trailer.
 
 ## Releases
 
-Use commitizen for versioning and changelog generation:
+Releases are **automatic**: merging to `master` triggers `release.yml`, which uses
+`commitizen-tools/commitizen-action` to bump version, generate CHANGELOG.md, create
+a tag, and publish a GitHub Release with `tbxmanager.m` attached.
 
-```bash
-cz bump          # bumps version, updates CHANGELOG.md, creates tag
-cz changelog     # regenerates CHANGELOG.md from full commit history
-```
-
-Configured in `pyproject.toml` under `[tool.commitizen]`.
 Bump rules: fix→PATCH, feat→MINOR, BREAKING CHANGE→MAJOR.
 
 **Do NOT manually edit CHANGELOG.md** — it is fully owned by commitizen.
+**Do NOT manually run `cz bump`** — the CI handles it on merge to master.
 
 ## Examples
 
