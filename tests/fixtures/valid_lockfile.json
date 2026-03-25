@@ -1,0 +1,41 @@
+{
+  "lockfile_version": 1,
+  "generated": "2026-03-25T10:00:00Z",
+  "requires": {
+    "gamma": ">=1.0"
+  },
+  "packages": {
+    "gamma": {
+      "version": "1.0.0",
+      "resolved": {
+        "url": "https://example.com/gamma/releases/v1.0.0/gamma-all.zip",
+        "sha256": "d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5",
+        "platform": "all"
+      },
+      "dependencies": {
+        "alpha": "2.0.0",
+        "beta": "1.0.0"
+      }
+    },
+    "beta": {
+      "version": "1.0.0",
+      "resolved": {
+        "url": "https://example.com/beta/releases/v1.0.0/beta-all.zip",
+        "sha256": "c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4",
+        "platform": "all"
+      },
+      "dependencies": {
+        "alpha": "2.0.0"
+      }
+    },
+    "alpha": {
+      "version": "2.0.0",
+      "resolved": {
+        "url": "https://example.com/alpha/releases/v2.0.0/alpha-all.zip",
+        "sha256": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3",
+        "platform": "all"
+      },
+      "dependencies": {}
+    }
+  }
+}

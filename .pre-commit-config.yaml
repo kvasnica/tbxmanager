@@ -81,4 +81,4 @@ repos:
         name: validate JSON schemas (metaschema)
         stages: [pre-commit]
         files: ^scripts/schemas/.*\.schema\.json$
-        args: ['--builtin-schema', 'vendor.json-schema-draft2020-12']
+        args: ['--schemafile', 'https://json-schema.org/draft/2020-12/schema']

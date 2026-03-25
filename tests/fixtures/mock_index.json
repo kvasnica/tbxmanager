@@ -1,0 +1,148 @@
+{
+  "index_version": 1,
+  "generated": "2026-01-01T00:00:00Z",
+  "packages": {
+    "alpha": {
+      "name": "alpha",
+      "description": "A foundational test package with no dependencies",
+      "homepage": "https://example.com/alpha",
+      "license": "MIT",
+      "authors": ["Test Author <test@example.com>"],
+      "latest": "2.0.0",
+      "versions": {
+        "1.0.0": {
+          "matlab": ">=R2022a",
+          "dependencies": {},
+          "platforms": {
+            "all": {
+              "url": "https://example.com/alpha/releases/v1.0.0/alpha-all.zip",
+              "sha256": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+            }
+          },
+          "released": "2025-01-15"
+        },
+        "2.0.0": {
+          "matlab": ">=R2022a",
+          "dependencies": {},
+          "platforms": {
+            "all": {
+              "url": "https://example.com/alpha/releases/v2.0.0/alpha-all.zip",
+              "sha256": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3"
+            }
+          },
+          "released": "2025-06-01"
+        }
+      }
+    },
+    "beta": {
+      "name": "beta",
+      "description": "A package that depends on alpha",
+      "license": "MIT",
+      "authors": ["Test Author <test@example.com>"],
+      "latest": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "matlab": ">=R2022a",
+          "dependencies": {
+            "alpha": ">=1.0"
+          },
+          "platforms": {
+            "all": {
+              "url": "https://example.com/beta/releases/v1.0.0/beta-all.zip",
+              "sha256": "c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+            }
+          },
+          "released": "2025-03-01"
+        }
+      }
+    },
+    "gamma": {
+      "name": "gamma",
+      "description": "A package with diamond dependency (depends on alpha>=2.0 and beta>=1.0)",
+      "license": "BSD-3-Clause",
+      "authors": ["Test Author <test@example.com>"],
+      "latest": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "matlab": ">=R2022a",
+          "dependencies": {
+            "alpha": ">=2.0",
+            "beta": ">=1.0"
+          },
+          "platforms": {
+            "all": {
+              "url": "https://example.com/gamma/releases/v1.0.0/gamma-all.zip",
+              "sha256": "d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5"
+            }
+          },
+          "released": "2025-04-01"
+        }
+      }
+    },
+    "delta": {
+      "name": "delta",
+      "description": "A platform-specific package (not pure MATLAB)",
+      "license": "MIT",
+      "authors": ["Test Author <test@example.com>"],
+      "latest": "1.1.0",
+      "versions": {
+        "1.0.0": {
+          "matlab": ">=R2022a",
+          "dependencies": {},
+          "platforms": {
+            "maci64": {
+              "url": "https://example.com/delta/releases/v1.0.0/delta-maci64.zip",
+              "sha256": "e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6"
+            },
+            "win64": {
+              "url": "https://example.com/delta/releases/v1.0.0/delta-win64.zip",
+              "sha256": "f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1"
+            }
+          },
+          "released": "2025-02-01"
+        },
+        "1.1.0": {
+          "matlab": ">=R2022a",
+          "dependencies": {},
+          "platforms": {
+            "maci64": {
+              "url": "https://example.com/delta/releases/v1.1.0/delta-maci64.zip",
+              "sha256": "1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b"
+            },
+            "win64": {
+              "url": "https://example.com/delta/releases/v1.1.0/delta-win64.zip",
+              "sha256": "2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c"
+            },
+            "maca64": {
+              "url": "https://example.com/delta/releases/v1.1.0/delta-maca64.zip",
+              "sha256": "3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d"
+            }
+          },
+          "released": "2025-05-15"
+        }
+      }
+    },
+    "epsilon": {
+      "name": "epsilon",
+      "description": "A package that depends on the platform-specific delta",
+      "license": "MIT",
+      "authors": ["Test Author <test@example.com>"],
+      "latest": "1.0.0",
+      "versions": {
+        "1.0.0": {
+          "matlab": ">=R2022a",
+          "dependencies": {
+            "delta": ">=1.0"
+          },
+          "platforms": {
+            "all": {
+              "url": "https://example.com/epsilon/releases/v1.0.0/epsilon-all.zip",
+              "sha256": "4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e"
+            }
+          },
+          "released": "2025-06-15"
+        }
+      }
+    }
+  }
+}

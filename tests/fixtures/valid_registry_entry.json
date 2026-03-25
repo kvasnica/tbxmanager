@@ -1,0 +1,51 @@
+{
+  "name": "cddmex",
+  "description": "MATLAB interface for the CDD library",
+  "homepage": "https://github.com/kvasnica/cddmex",
+  "license": "GPL-2.0",
+  "authors": ["Michal Kvasnica <michal.kvasnica@gmail.com>"],
+  "versions": {
+    "1.0.0": {
+      "matlab": ">=R2014a",
+      "dependencies": {},
+      "platforms": {
+        "maci64": {
+          "url": "https://github.com/kvasnica/cddmex/releases/download/v1.0.0/cddmex-maci64.zip",
+          "sha256": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+        },
+        "win64": {
+          "url": "https://github.com/kvasnica/cddmex/releases/download/v1.0.0/cddmex-win64.zip",
+          "sha256": "b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3"
+        },
+        "glnxa64": {
+          "url": "https://github.com/kvasnica/cddmex/releases/download/v1.0.0/cddmex-glnxa64.zip",
+          "sha256": "c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
+        }
+      },
+      "released": "2014-05-20"
+    },
+    "1.0.2": {
+      "matlab": ">=R2022a",
+      "dependencies": {},
+      "platforms": {
+        "maci64": {
+          "url": "https://github.com/kvasnica/cddmex/releases/download/v1.0.2/cddmex-maci64.zip",
+          "sha256": "d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5"
+        },
+        "maca64": {
+          "url": "https://github.com/kvasnica/cddmex/releases/download/v1.0.2/cddmex-maca64.zip",
+          "sha256": "e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6"
+        },
+        "win64": {
+          "url": "https://github.com/kvasnica/cddmex/releases/download/v1.0.2/cddmex-win64.zip",
+          "sha256": "f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1"
+        },
+        "glnxa64": {
+          "url": "https://github.com/kvasnica/cddmex/releases/download/v1.0.2/cddmex-glnxa64.zip",
+          "sha256": "1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b3c4d5e6f1a2b"
+        }
+      },
+      "released": "2026-01-10"
+    }
+  }
+}

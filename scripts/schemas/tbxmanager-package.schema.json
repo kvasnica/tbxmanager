@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tbxmanager.com/schema/tbxmanager-package.schema.json",
+  "title": "tbxmanager Package Metadata",
+  "description": "Schema for tbxmanager.json — the package manifest that authors place in their repository.",
+  "type": "object",
+  "required": ["name", "version", "description", "platforms"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "maxLength": 50,
+      "description": "Package identifier (lowercase, alphanumeric, hyphens, underscores)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$",
+      "description": "Package version in MAJOR.MINOR or MAJOR.MINOR.PATCH format"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Short description of the package"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Project homepage URL"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier (e.g., MIT, GPL-3.0, BSD-3-Clause)"
+    },
+    "authors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of authors in 'Name <email>' format"
+    },
+    "matlab": {
+      "type": "string",
+      "pattern": "^(>=|==)R20[0-9]{2}[ab]$",
+      "description": "MATLAB version constraint (e.g., >=R2022a)"
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "description": "Version constraint (e.g., >=1.0, <2.0, ==1.2.3, ~=1.2, >=1.0,<2.0)"
+      },
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_-]*$"
+      },
+      "description": "Package dependencies with version constraints"
+    },
+    "platforms": {
+      "type": "object",
+      "propertyNames": {
+        "enum": ["win64", "maci64", "maca64", "glnxa64", "all"]
+      },
+      "additionalProperties": {
+        "type": "string",
+        "format": "uri",
+        "description": "Download URL for this platform's archive"
+      },
+      "minProperties": 1,
+      "description": "Platform-specific download URLs"
+    }
+  },
+  "additionalProperties": false
+}
