@@ -1,12 +1,38 @@
 name: Test MATLAB Client
+
 on:
   push:
     branches: [dev, master]
   pull_request:
     branches: [dev]
+  workflow_call:
 
 jobs:
-  test:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Lint Python scripts
+        run: uv run --group dev ruff check scripts/
+
+      - name: Validate JSON schemas against metaschema
+        run: |
+          uv run --group dev check-jsonschema \
+            --schemafile https://json-schema.org/draft/2020-12/schema \
+            scripts/schemas/*.schema.json
+
+      - name: Validate test fixtures against schemas
+        run: |
+          uv run --group dev check-jsonschema --schemafile scripts/schemas/tbxmanager-package.schema.json tests/fixtures/valid_package.json
+          uv run --group dev check-jsonschema --schemafile scripts/schemas/registry-package.schema.json tests/fixtures/valid_registry_entry.json
+          uv run --group dev check-jsonschema --schemafile scripts/schemas/lockfile.schema.json tests/fixtures/valid_lockfile.json
+
+  matlab:
     strategy:
       fail-fast: false
       matrix:
@@ -19,14 +45,25 @@ jobs:
       - uses: matlab-actions/setup-matlab@v2
         with:
           release: ${{ matrix.matlab-release }}
+          cache: true
 
       - uses: matlab-actions/run-tests@v2
         with:
           source-folder: .
           test-results-junit: results/test-results.xml
+          code-coverage-cobertura: results/coverage.xml
+          select-by-folder: tests
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results-${{ matrix.os }}-${{ matrix.matlab-release }}
           path: results/
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest' && matrix.matlab-release == 'R2024a'
+        uses: codecov/codecov-action@v5
+        with:
+          files: results/coverage.xml
+          flags: matlab
+          fail_ci_if_error: false
