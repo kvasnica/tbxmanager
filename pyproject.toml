@@ -11,6 +11,13 @@ tbx-build-index = "scripts.build_index:main"
 tbx-validate = "scripts.validate_package:main"
 tbx-build-site-data = "scripts.build_packages_data:main"
 
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "2.0.0"
+tag_format = "v$version"
+changelog_file = "CHANGELOG.md"
+update_changelog_on_bump = true
+
 [dependency-groups]
 dev = [
     "check-jsonschema>=0.30",

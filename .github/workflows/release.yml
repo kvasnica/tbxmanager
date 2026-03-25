@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: 'Override bump level (auto = detect from commits)'
+        required: true
+        type: choice
+        default: auto
+        options:
+          - auto
+          - MINOR
+          - PATCH
+
+permissions:
+  contents: write
+
+jobs:
+  bump-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install commitizen
+        run: pip install commitizen
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version and generate changelog
+        id: bump
+        run: |
+          if [ "${{ inputs.increment }}" != "auto" ]; then
+            cz bump --increment "${{ inputs.increment }}" --yes
+          else
+            cz bump --yes
+          fi
+          echo "version=$(cz version --project)" >> "$GITHUB_OUTPUT"
+          echo "tag=v$(cz version --project)" >> "$GITHUB_OUTPUT"
+
+      - name: Push version commit and tag
+        run: git push --follow-tags
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.bump.outputs.tag }}
+          files: tbxmanager.m
+          generate_release_notes: true
