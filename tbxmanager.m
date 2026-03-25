@@ -67,6 +67,8 @@ function tbxmanager(command, varargin)
             main_cache(args);
         case "help"
             main_help(args);
+        case "internal__"
+            main_internal(args);
         otherwise
             tbx_printError("Unknown command '%s'. Type 'tbxmanager help' for usage.", command);
     end
@@ -106,6 +108,11 @@ end
 
 function d = tbx_baseDir()
 %TBX_BASEDIR  Return the base directory ~/.tbxmanager
+%   Respects TBXMANAGER_HOME env var for test isolation.
+    d = getenv("TBXMANAGER_HOME");
+    if strlength(d) > 0
+        return;
+    end
     if ispc
         d = fullfile(getenv("USERPROFILE"), ".tbxmanager");
     else
@@ -2220,6 +2227,66 @@ function main_help(args)
             tbx_printf("  tbxmanager help install\n");
             tbx_printf("\nStorage: %s\n", tbx_baseDir());
     end
+end
+
+function main_internal(args)
+%MAIN_INTERNAL  Expose internal functions for testing. Not for end users.
+%   tbxmanager internal__ <function_name> <args...>
+%   Returns result via assignin('base', 'ans', result)
+    if isempty(args)
+        error("TBXMANAGER:Internal", "Usage: tbxmanager internal__ <func> <args...>");
+    end
+    funcName = args(1);
+    funcArgs = args(2:end);
+    switch funcName
+        case "parseVersion"
+            result = tbx_parseVersion(funcArgs(1));
+        case "compareVersions"
+            result = tbx_compareVersions(funcArgs(1), funcArgs(2));
+        case "satisfiesConstraint"
+            result = tbx_satisfiesConstraint(funcArgs(1), funcArgs(2));
+        case "parseConstraint"
+            result = tbx_parseConstraint(funcArgs(1));
+        case "matlabReleaseNum"
+            result = tbx_matlabReleaseNum(funcArgs(1));
+        case "sha256"
+            result = tbx_sha256(funcArgs(1));
+        case "baseDir"
+            result = tbx_baseDir();
+        case "platformArch"
+            result = tbx_platformArch();
+        case "loadIndex"
+            result = tbx_loadIndex();
+        case "resolve"
+            index = tbx_loadIndex();
+            requested = struct("name", {}, "constraint", {});
+            for i = 1:numel(funcArgs)
+                parts = split(funcArgs(i), "@");
+                r.name = parts(1);
+                if numel(parts) > 1
+                    r.constraint = parts(2);
+                else
+                    r.constraint = "*";
+                end
+                requested(end+1) = r; %#ok<AGROW>
+            end
+            result = tbx_resolve(requested, index);
+        case "listInstalled"
+            result = tbx_listInstalled();
+        case "loadEnabled"
+            result = tbx_loadEnabled();
+        case "readJson"
+            result = tbx_readJson(funcArgs(1));
+        case "writeJson"
+            tbx_writeJson(funcArgs(1), jsondecode(strjoin(funcArgs(2:end))));
+            result = true;
+        case "toposort"
+            % Expects a JSON string describing the plan struct array
+            result = tbx_toposort(jsondecode(funcArgs(1)));
+        otherwise
+            error("TBXMANAGER:Internal", "Unknown internal function: %s", funcName);
+    end
+    assignin("base", "ans", result);
 end
 
 %% ========================================================================
