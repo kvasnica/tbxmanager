@@ -263,16 +263,17 @@ function hash = tbx_sha256(filePath)
         filePath (1,1) string
     end
     md = java.security.MessageDigest.getInstance("SHA-256");
-    fis = java.io.FileInputStream(java.io.File(char(filePath)));
-    buffer = zeros(1, 8192, "int8");
-    while true
-        bytesRead = fis.read(buffer);
-        if bytesRead == -1
-            break;
-        end
-        md.update(buffer(1:bytesRead));
+    fid = fopen(filePath, 'r');
+    if fid == -1
+        error("TBXMANAGER:FileRead", "Cannot open file: %s", filePath);
     end
-    fis.close();
+    cleanupObj = onCleanup(@() fclose(fid));
+    while ~feof(fid)
+        chunk = fread(fid, 65536, '*uint8');
+        if ~isempty(chunk)
+            md.update(chunk);
+        end
+    end
     hashBytes = md.digest();
     hexChars = char("0123456789abcdef");
     hashStr = blanks(length(hashBytes) * 2);
