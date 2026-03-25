@@ -1,6 +1,32 @@
+# Archives
 *.zip
-*.*~
+*.tar.gz
+*.tgz
+
+# MATLAB
 *.asv
+*.*~
+*.mex*
 toolboxes/
+
+# tbxmanager runtime files
 tbxsources.txt
 tbxenabled.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Legacy web2py app (kept locally for migration, not tracked)
+tbxmanager/
+
+# Jekyll build output
+docs/_site/
+docs/.jekyll-cache/
+docs/.sass-cache/
+
+# Python / uv
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/

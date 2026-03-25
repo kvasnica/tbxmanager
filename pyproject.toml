@@ -1,0 +1,21 @@
+[project]
+name = "tbxmanager"
+version = "2.0.0"
+description = "Infrastructure scripts for tbxmanager — MATLAB package manager"
+requires-python = ">=3.14"
+dependencies = []
+
+[project.scripts]
+tbx-migrate = "scripts.migrate_registry:main"
+tbx-build-index = "scripts.build_index:main"
+tbx-validate = "scripts.validate_package:main"
+tbx-build-site-data = "scripts.build_packages_data:main"
+
+[dependency-groups]
+dev = [
+    "check-jsonschema>=0.30",
+    "commitizen>=4.13.9",
+    "pre-commit>=4.5.1",
+    "ruff>=0.15.7",
+    "ty>=0.0.25",
+]
