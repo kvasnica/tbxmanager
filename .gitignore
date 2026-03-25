@@ -20,10 +20,8 @@ Thumbs.db
 # Legacy web2py app (kept locally for migration, not tracked)
 tbxmanager/
 
-# Jekyll build output
-docs/_site/
-docs/.jekyll-cache/
-docs/.sass-cache/
+# MkDocs build output
+site/
 
 # Python / uv
 __pycache__/

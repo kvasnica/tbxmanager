@@ -22,6 +22,7 @@ update_changelog_on_bump = true
 dev = [
     "check-jsonschema>=0.30",
     "commitizen>=4.13.9",
+    "mkdocs-material>=9.7.6",
     "pre-commit>=4.5.1",
     "ruff>=0.15.7",
     "ty>=0.0.25",
