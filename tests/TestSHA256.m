@@ -33,12 +33,19 @@ classdef TestSHA256 < matlab.unittest.TestCase
         function testDifferentFilesHaveDifferentHashes(testCase)
             f1 = fullfile(testCase.TempDir, "file1.txt");
             f2 = fullfile(testCase.TempDir, "file2.txt");
+            % Write distinct content and verify files exist
             fid1 = fopen(f1, 'w');
-            fwrite(fid1, 'content_aaa');
+            testCase.assertGreaterThan(fid1, 0, 'Failed to open file1');
+            fwrite(fid1, uint8([1 2 3 4 5]));
             fclose(fid1);
             fid2 = fopen(f2, 'w');
-            fwrite(fid2, 'content_bbb');
+            testCase.assertGreaterThan(fid2, 0, 'Failed to open file2');
+            fwrite(fid2, uint8([6 7 8 9 10]));
             fclose(fid2);
+            % Verify files have different sizes or content
+            d1 = dir(f1); d2 = dir(f2);
+            testCase.assertEqual(d1.bytes, 5);
+            testCase.assertEqual(d2.bytes, 5);
             h1 = string(tbxmanager("internal__", "sha256", f1));
             h2 = string(tbxmanager("internal__", "sha256", f2));
             testCase.verifyNotEqual(h1, h2);

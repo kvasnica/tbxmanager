@@ -28,11 +28,12 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
 
             % Create mock index and configure source
             testCase.createMockIndex();
+            % Write sources.json with raw JSON to avoid jsondecode round-trip issues
             sourcesFile = fullfile(testCase.TempDir, "state", "sources.json");
-            s.sources = {['file://' testCase.MockIndexFile]};
-            jsonStr = jsonencode(s);
+            srcUrl = strrep(['file://' testCase.MockIndexFile], '\', '/');
+            rawJson = sprintf('{"sources":["%s"]}', srcUrl);
             fid = fopen(sourcesFile, 'w');
-            fwrite(fid, jsonStr);
+            fwrite(fid, rawJson);
             fclose(fid);
 
             testCase.addTeardown(@() path(testCase.OrigPath));
