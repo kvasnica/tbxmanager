@@ -1,4 +1,4 @@
-.PHONY: help install dev docs docs-build lint validate migrate test clean
+.PHONY: help install dev docs docs-build lint validate migrate test test-matlab test-lint test-all test-ci clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -50,8 +50,27 @@ index: ## Build index.json from packages/ (run migrate-run first)
 
 # ── Test ──────────────────────────────────────────────
 
-test: lint validate ## Run all checks (lint + validate)
+test: lint validate ## Run non-MATLAB checks (lint + validate)
 	@echo "All checks passed"
+
+ACT_FLAGS ?= --container-architecture linux/amd64
+
+test-lint: ## Run CI lint job locally (via act)
+	act push -W .github/workflows/test.yml -j lint $(ACT_FLAGS)
+
+test-matlab: ## Run CI MATLAB tests locally (via act, requires Docker)
+	act push -W .github/workflows/test.yml -j matlab $(ACT_FLAGS)
+
+test-ci: ## Run full CI workflow locally (via act)
+	act push -W .github/workflows/test.yml $(ACT_FLAGS)
+
+test-remote: ## Trigger CI on GitHub and stream logs (no Docker needed)
+	gh workflow run "Test MATLAB Client" --ref $$(git branch --show-current)
+	@echo "Waiting for workflow to start..."
+	@sleep 5
+	gh run watch --exit-status
+
+test-all: test test-ci ## Run everything (lint + validate + CI)
 
 # ── Clean ─────────────────────────────────────────────
 

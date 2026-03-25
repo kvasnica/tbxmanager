@@ -464,13 +464,32 @@ function sources = tbx_getSources()
         return;
     end
     data = tbx_readJson(sourcesFile);
-    if isfield(data, "sources")
-        if iscell(data.sources)
-            sources = string(data.sources);
-        elseif ischar(data.sources) || isstring(data.sources)
-            sources = string(data.sources);
-        else
-            sources = string(data.sources);
+    if ~isfield(data, "sources")
+        sources = "https://kvasnica.github.io/tbxmanager-registry/index.json";
+        return;
+    end
+    raw = data.sources;
+    % jsondecode returns various types depending on content:
+    % - cell array of char vectors for string arrays
+    % - char vector for single string
+    % - nested cells in some edge cases
+    if isstring(raw)
+        sources = raw(:)';
+    elseif ischar(raw)
+        sources = string(raw);
+    elseif iscell(raw)
+        sources = strings(1, numel(raw));
+        for i = 1:numel(raw)
+            item = raw{i};
+            if ischar(item)
+                sources(i) = string(item);
+            elseif isstring(item)
+                sources(i) = item;
+            elseif iscell(item) && numel(item) == 1
+                sources(i) = string(item{1});
+            else
+                sources(i) = string(item);
+            end
         end
     else
         sources = "https://kvasnica.github.io/tbxmanager-registry/index.json";

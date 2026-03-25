@@ -22,7 +22,7 @@ classdef TestSHA256 < matlab.unittest.TestCase
         function testKnownHash(testCase)
             f = fullfile(testCase.TempDir, "testfile.txt");
             fid = fopen(f, 'w');
-            fprintf(fid, 'hello\n');
+            fwrite(fid, 'hello');
             fclose(fid);
             hash = tbxmanager("internal__", "sha256", f);
             hash = string(hash);
@@ -33,8 +33,12 @@ classdef TestSHA256 < matlab.unittest.TestCase
         function testDifferentFilesHaveDifferentHashes(testCase)
             f1 = fullfile(testCase.TempDir, "file1.txt");
             f2 = fullfile(testCase.TempDir, "file2.txt");
-            fid = fopen(f1, 'w'); fprintf(fid, 'aaa'); fclose(fid);
-            fid = fopen(f2, 'w'); fprintf(fid, 'bbb'); fclose(fid);
+            fid1 = fopen(f1, 'w');
+            fwrite(fid1, 'content_aaa');
+            fclose(fid1);
+            fid2 = fopen(f2, 'w');
+            fwrite(fid2, 'content_bbb');
+            fclose(fid2);
             h1 = string(tbxmanager("internal__", "sha256", f1));
             h2 = string(tbxmanager("internal__", "sha256", f2));
             testCase.verifyNotEqual(h1, h2);
@@ -42,7 +46,7 @@ classdef TestSHA256 < matlab.unittest.TestCase
 
         function testSameFileGivesSameHash(testCase)
             f = fullfile(testCase.TempDir, "same.txt");
-            fid = fopen(f, 'w'); fprintf(fid, 'test content'); fclose(fid);
+            fid = fopen(f, 'w'); fwrite(fid, 'test content'); fclose(fid);
             h1 = string(tbxmanager("internal__", "sha256", f));
             h2 = string(tbxmanager("internal__", "sha256", f));
             testCase.verifyEqual(h1, h2);

@@ -23,6 +23,9 @@ tbxmanager/
 # MkDocs build output
 site/
 
+# MATLAB test results
+results/
+
 # Python / uv
 __pycache__/
 *.pyc
