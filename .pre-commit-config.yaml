@@ -69,7 +69,7 @@ repos:
     rev: v0.48.0  # autoupdated
     hooks:
       - id: markdownlint
-        args: ['--disable', 'MD013', 'MD033', 'MD041', '--']
+        args: ['--disable', 'MD013', 'MD030', 'MD033', 'MD041', '--']
         stages: [pre-commit]
         exclude: ^(CHANGELOG\.md|\.claude/)
 
