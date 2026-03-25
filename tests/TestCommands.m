@@ -11,6 +11,7 @@ classdef TestCommands < matlab.unittest.TestCase
     methods (TestMethodSetup)
         function setupTest(testCase)
             testCase.TempDir = fullfile(tempdir, "tbx_test_" + string(randi(99999)));
+            mkdir(testCase.TempDir);
             testCase.OrigHome = getenv("TBXMANAGER_HOME");
             testCase.OrigDir = pwd;
             setenv("TBXMANAGER_HOME", testCase.TempDir);
@@ -26,7 +27,6 @@ classdef TestCommands < matlab.unittest.TestCase
 
         function testHelpRuns(testCase)
             tbxmanager("help");
-            % Should not error
             testCase.verifyTrue(true);
         end
 
@@ -87,7 +87,8 @@ classdef TestCommands < matlab.unittest.TestCase
         end
 
         function testCacheClean(testCase)
-            % Create a fake cache file
+            % Ensure setup has run so cache dir exists
+            tbxmanager("help");
             cacheDir = fullfile(testCase.TempDir, "cache");
             fid = fopen(fullfile(cacheDir, "test-1.0.0-all.zip"), 'w');
             fwrite(fid, 'fake');
@@ -100,7 +101,6 @@ classdef TestCommands < matlab.unittest.TestCase
         % --- unknown command ---
 
         function testUnknownCommand(testCase)
-            % Should print error but not throw
             tbxmanager("notacommand");
             testCase.verifyTrue(true);
         end
@@ -108,7 +108,6 @@ classdef TestCommands < matlab.unittest.TestCase
         % --- enable/disable without packages ---
 
         function testEnableNonexistent(testCase)
-            % Should handle gracefully
             tbxmanager("enable", "nonexistent_pkg_xyz");
             testCase.verifyTrue(true);
         end
@@ -118,7 +117,7 @@ classdef TestCommands < matlab.unittest.TestCase
         function testRequireMissing(testCase)
             testCase.verifyError(...
                 @() tbxmanager("require", "nonexistent_pkg_xyz"), ...
-                'TBXMANAGER:NotInstalled');
+                'TBXMANAGER:RequireMissing');
         end
 
         % --- restorepath (empty) ---

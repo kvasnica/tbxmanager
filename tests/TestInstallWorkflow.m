@@ -1,8 +1,6 @@
 classdef TestInstallWorkflow < matlab.unittest.TestCase
     % Integration tests for install, uninstall, update, enable, disable,
     % restorepath. Uses local file:// URLs with mock packages.
-    %
-    % Covers scenarios from legacy tests t_000, t_004, t_005, t_006, t_007, t_008.
 
     properties
         TempDir
@@ -16,26 +14,25 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
     methods (TestMethodSetup)
         function setupTest(testCase)
             testCase.TempDir = fullfile(tempdir, "tbx_test_" + string(randi(99999)));
+            mkdir(testCase.TempDir);
             testCase.OrigHome = getenv("TBXMANAGER_HOME");
             testCase.OrigDir = pwd;
             testCase.OrigPath = path;
             setenv("TBXMANAGER_HOME", testCase.TempDir);
 
-            % Find fixtures directory relative to this test file
             testCase.FixturesDir = fullfile(fileparts(mfilename('fullpath')), 'fixtures');
-
-            % Create a local mock index.json with file:// URLs
             testCase.MockIndexFile = fullfile(testCase.TempDir, "mock_index.json");
-            testCase.createMockIndex();
 
-            % Initialize tbxmanager and point to local index
+            % Initialize tbxmanager
             tbxmanager("help");
 
-            % Replace sources with our local mock
+            % Create mock index and configure source
+            testCase.createMockIndex();
             sourcesFile = fullfile(testCase.TempDir, "state", "sources.json");
             s.sources = {['file://' testCase.MockIndexFile]};
+            jsonStr = jsonencode(s);
             fid = fopen(sourcesFile, 'w');
-            fprintf(fid, '%s', jsonencode(s));
+            fwrite(fid, jsonStr);
             fclose(fid);
 
             testCase.addTeardown(@() path(testCase.OrigPath));
@@ -52,14 +49,12 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             idx.index_version = 1;
             idx.generated = '2026-01-01T00:00:00Z';
 
-            % testpkg1 v1.0.0
             tp1v1.matlab = '>=R2022a';
             tp1v1.dependencies = struct();
             tp1v1.platforms.all.url = ['file://' fullfile(pkgDir, 'testpkg1-1.0.0-all.zip')];
             tp1v1.platforms.all.sha256 = '9a430896c128c529dea9d748328d246dc393ec321b8c840485c26514bb460b12';
             tp1v1.released = '2025-01-01';
 
-            % testpkg1 v2.0.0
             tp1v2.matlab = '>=R2022a';
             tp1v2.dependencies = struct();
             tp1v2.platforms.all.url = ['file://' fullfile(pkgDir, 'testpkg1-2.0.0-all.zip')];
@@ -74,7 +69,6 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             pkg1.versions.x1_0_0 = tp1v1;
             pkg1.versions.x2_0_0 = tp1v2;
 
-            % testpkg2 v1.0.0 (depends on testpkg1)
             tp2v1.matlab = '>=R2022a';
             tp2v1.dependencies.testpkg1 = '>=1.0';
             tp2v1.platforms.all.url = ['file://' fullfile(pkgDir, 'testpkg2-1.0.0-all.zip')];
@@ -91,18 +85,18 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             idx.packages.testpkg1 = pkg1;
             idx.packages.testpkg2 = pkg2;
 
+            jsonStr = jsonencode(idx);
             fid = fopen(testCase.MockIndexFile, 'w');
-            fprintf(fid, '%s', jsonencode(idx));
+            fwrite(fid, jsonStr);
             fclose(fid);
         end
     end
 
     methods (Test)
 
-        % --- Error handling (covers t_000) ---
+        % --- Error handling ---
 
         function testInstallNoArgs(testCase)
-            % Should print error but not crash
             tbxmanager("install");
             testCase.verifyTrue(true);
         end
@@ -122,7 +116,7 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        % --- Install (covers t_004) ---
+        % --- Install ---
 
         function testInstallSinglePackage(testCase)
             tbxmanager("install", "testpkg1");
@@ -132,21 +126,18 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
 
         function testInstallCreatesFiles(testCase)
             tbxmanager("install", "testpkg1");
-            % Should have version subdirectory
             versions = dir(fullfile(testCase.TempDir, "packages", "testpkg1"));
             versionDirs = versions([versions.isdir] & ~ismember({versions.name}, {'.', '..'}));
             testCase.verifyGreaterThanOrEqual(numel(versionDirs), 1);
         end
 
         function testDoubleInstall(testCase)
-            % Covers t_008: installing same package twice should be idempotent
             tbxmanager("install", "testpkg1");
             tbxmanager("install", "testpkg1");
-            testCase.verifyTrue(true); % Should not error
+            testCase.verifyTrue(true);
         end
 
         function testInstallWithDependency(testCase)
-            % testpkg2 depends on testpkg1 - both should be installed
             tbxmanager("install", "testpkg2");
             testCase.verifyTrue(isfolder(fullfile(testCase.TempDir, "packages", "testpkg2")));
             testCase.verifyTrue(isfolder(fullfile(testCase.TempDir, "packages", "testpkg1")));
@@ -179,13 +170,12 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        % --- Enable/Disable (covers t_005) ---
+        % --- Enable/Disable ---
 
         function testEnableDisableCycle(testCase)
             tbxmanager("install", "testpkg1");
             tbxmanager("disable", "testpkg1");
 
-            % Check enabled.json
             f = fullfile(testCase.TempDir, "state", "enabled.json");
             data = jsondecode(fileread(f));
             if isstruct(data.packages)
@@ -200,23 +190,21 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
         end
 
         function testRestorePathAfterDisable(testCase)
-            % Covers t_005 restorepath scenario
             tbxmanager("install", "testpkg1");
             tbxmanager("enable", "testpkg1");
             tbxmanager("restorepath");
             testCase.verifyTrue(true);
         end
 
-        % --- Update (covers t_006) ---
+        % --- Update ---
 
         function testUpdatePackage(testCase)
-            % Install v1 by constraining, then update to latest
             tbxmanager("install", "testpkg1@==1.0.0");
             tbxmanager("update", "testpkg1");
             testCase.verifyTrue(true);
         end
 
-        % --- Uninstall (covers t_007) ---
+        % --- Uninstall ---
 
         function testUninstallPackage(testCase)
             tbxmanager("install", "testpkg1");
@@ -226,10 +214,8 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
         end
 
         function testUninstallWithDeps(testCase)
-            % Install pkg2 (pulls pkg1), then uninstall pkg1 should warn
             tbxmanager("install", "testpkg2");
             tbxmanager("uninstall", "testpkg1");
-            % Should still succeed (with warning) or refuse
             testCase.verifyTrue(true);
         end
 

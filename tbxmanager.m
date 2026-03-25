@@ -1,4 +1,4 @@
-function tbxmanager(command, varargin)
+function varargout = tbxmanager(command, varargin)
 %TBXMANAGER  Toolbox package manager for MATLAB (v2)
 %
 %   tbxmanager install pkg1 pkg2@>=1.0 ...
@@ -68,7 +68,12 @@ function tbxmanager(command, varargin)
         case "help"
             main_help(args);
         case "internal__"
-            main_internal(args);
+            if nargout > 0
+                varargout{1} = main_internal(args);
+            else
+                main_internal(args);
+            end
+            return;
         otherwise
             tbx_printError("Unknown command '%s'. Type 'tbxmanager help' for usage.", command);
     end
@@ -2229,10 +2234,9 @@ function main_help(args)
     end
 end
 
-function main_internal(args)
+function result = main_internal(args)
 %MAIN_INTERNAL  Expose internal functions for testing. Not for end users.
-%   tbxmanager internal__ <function_name> <args...>
-%   Returns result via assignin('base', 'ans', result)
+%   result = tbxmanager('internal__', 'funcName', args...)
     if isempty(args)
         error("TBXMANAGER:Internal", "Usage: tbxmanager internal__ <func> <args...>");
     end
@@ -2281,12 +2285,10 @@ function main_internal(args)
             tbx_writeJson(funcArgs(1), jsondecode(strjoin(funcArgs(2:end))));
             result = true;
         case "toposort"
-            % Expects a JSON string describing the plan struct array
             result = tbx_toposort(jsondecode(funcArgs(1)));
         otherwise
             error("TBXMANAGER:Internal", "Unknown internal function: %s", funcName);
     end
-    assignin("base", "ans", result);
 end
 
 %% ========================================================================

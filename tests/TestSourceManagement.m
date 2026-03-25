@@ -9,6 +9,7 @@ classdef TestSourceManagement < matlab.unittest.TestCase
     methods (TestMethodSetup)
         function setupTest(testCase)
             testCase.TempDir = fullfile(tempdir, "tbx_test_" + string(randi(99999)));
+            mkdir(testCase.TempDir);
             testCase.OrigHome = getenv("TBXMANAGER_HOME");
             setenv("TBXMANAGER_HOME", testCase.TempDir);
             testCase.addTeardown(@() setenv("TBXMANAGER_HOME", testCase.OrigHome));
@@ -19,7 +20,7 @@ classdef TestSourceManagement < matlab.unittest.TestCase
     methods (Test)
 
         function testDefaultSourceExists(testCase)
-            tbxmanager("help"); % trigger setup
+            tbxmanager("help");
             f = fullfile(testCase.TempDir, "state", "sources.json");
             data = jsondecode(fileread(f));
             sources = string(data.sources);
@@ -27,7 +28,7 @@ classdef TestSourceManagement < matlab.unittest.TestCase
         end
 
         function testAddSource(testCase)
-            tbxmanager("help"); % trigger setup
+            tbxmanager("help");
             tbxmanager("source", "add", "https://example.com/custom/index.json");
             f = fullfile(testCase.TempDir, "state", "sources.json");
             data = jsondecode(fileread(f));
@@ -36,7 +37,7 @@ classdef TestSourceManagement < matlab.unittest.TestCase
         end
 
         function testRemoveSource(testCase)
-            tbxmanager("help"); % trigger setup
+            tbxmanager("help");
             tbxmanager("source", "add", "https://example.com/temp.json");
             tbxmanager("source", "remove", "https://example.com/temp.json");
             f = fullfile(testCase.TempDir, "state", "sources.json");
@@ -46,7 +47,7 @@ classdef TestSourceManagement < matlab.unittest.TestCase
         end
 
         function testDuplicateSourceNotAdded(testCase)
-            tbxmanager("help"); % trigger setup
+            tbxmanager("help");
             tbxmanager("source", "add", "https://example.com/dup.json");
             tbxmanager("source", "add", "https://example.com/dup.json");
             f = fullfile(testCase.TempDir, "state", "sources.json");
