@@ -210,13 +210,13 @@ function tbx_writeJson(filePath, data)
         filePath (1,1) string
         data
     end
-    txt = jsonencode(data, "PrettyPrint", true);
-    fid = fopen(filePath, "w");
+    txt = char(jsonencode(data, "PrettyPrint", true));
+    fid = fopen(filePath, 'w');
     if fid == -1
         error("TBXMANAGER:FileWrite", "Cannot write to file: %s", filePath);
     end
     cleanupObj = onCleanup(@() fclose(fid));
-    fwrite(fid, txt, "char");
+    fprintf(fid, '%s', txt);
 end
 
 function data = tbx_fetchJson(url)
