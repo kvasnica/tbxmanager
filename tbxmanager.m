@@ -211,7 +211,7 @@ function tbx_writeJson(filePath, data)
         data
     end
     txt = jsonencode(data, "PrettyPrint", true);
-    fid = fopen(filePath, "w", "n", "UTF-8");
+    fid = fopen(filePath, "w");
     if fid == -1
         error("TBXMANAGER:FileWrite", "Cannot write to file: %s", filePath);
     end
