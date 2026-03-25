@@ -36,10 +36,11 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             fwrite(fid, rawJson);
             fclose(fid);
 
-            testCase.addTeardown(@() path(testCase.OrigPath));
-            testCase.addTeardown(@() cd(testCase.OrigDir));
-            testCase.addTeardown(@() setenv("TBXMANAGER_HOME", testCase.OrigHome));
+            % Teardowns run LIFO: rmdir last (registered first), cd before it
             testCase.addTeardown(@() rmdir(testCase.TempDir, 's'));
+            testCase.addTeardown(@() cd(testCase.OrigDir));
+            testCase.addTeardown(@() path(testCase.OrigPath));
+            testCase.addTeardown(@() setenv("TBXMANAGER_HOME", testCase.OrigHome));
         end
     end
 

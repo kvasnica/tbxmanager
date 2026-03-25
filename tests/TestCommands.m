@@ -15,9 +15,9 @@ classdef TestCommands < matlab.unittest.TestCase
             testCase.OrigHome = getenv("TBXMANAGER_HOME");
             testCase.OrigDir = pwd;
             setenv("TBXMANAGER_HOME", testCase.TempDir);
-            testCase.addTeardown(@() setenv("TBXMANAGER_HOME", testCase.OrigHome));
-            testCase.addTeardown(@() cd(testCase.OrigDir));
             testCase.addTeardown(@() rmdir(testCase.TempDir, 's'));
+            testCase.addTeardown(@() cd(testCase.OrigDir));
+            testCase.addTeardown(@() setenv("TBXMANAGER_HOME", testCase.OrigHome));
         end
     end
 
