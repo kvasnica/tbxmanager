@@ -13,6 +13,7 @@ tbx-build-site-data = "scripts.build_packages_data:main"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
+version_provider = "uv"
 tag_format = "v$version"
 changelog_file = "CHANGELOG.md"
 update_changelog_on_bump = true
