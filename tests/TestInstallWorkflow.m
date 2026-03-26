@@ -26,15 +26,11 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             % Initialize tbxmanager
             tbxmanager("help");
 
-            % Create mock index and configure source
+            % Create mock index and configure source using tbxmanager commands
             testCase.createMockIndex();
-            % Write sources.json with raw JSON to avoid jsondecode round-trip issues
-            sourcesFile = fullfile(testCase.TempDir, "state", "sources.json");
-            srcUrl = strrep(['file://' testCase.MockIndexFile], '\', '/');
-            rawJson = sprintf('{"sources":["%s"]}', srcUrl);
-            fid = fopen(sourcesFile, 'w');
-            fwrite(fid, rawJson);
-            fclose(fid);
+            srcUrl = strrep(['file://' char(testCase.MockIndexFile)], '\', '/');
+            tbxmanager("source", "remove", "https://kvasnica.github.io/tbxmanager-registry/index.json");
+            tbxmanager("source", "add", srcUrl);
 
             % Teardowns run LIFO: rmdir last (registered first), cd before it
             testCase.addTeardown(@() rmdir(testCase.TempDir, 's'));

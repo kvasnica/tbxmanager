@@ -1177,9 +1177,9 @@ function main_install(args)
     end
     tbx_printf("\n");
 
-    % Confirm
+    % Confirm (skip in non-interactive/batch mode)
     cfg = tbx_config();
-    if isfield(cfg, "confirm_install") && cfg.confirm_install
+    if isfield(cfg, "confirm_install") && cfg.confirm_install && usejava('desktop')
         reply = input("Proceed? [Y/n]: ", "s");
         if ~isempty(reply) && ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
             tbx_printf("Installation cancelled.\n");
@@ -1326,9 +1326,14 @@ function main_uninstall(args)
         revDeps = setdiff(revDeps, args);
         if ~isempty(revDeps)
             tbx_printWarning("Package '%s' is required by: %s", pkgName, strjoin(revDeps, ", "));
-            reply = input(sprintf("  Remove '%s' anyway? [y/N]: ", pkgName), "s");
-            if ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
-                tbx_printf("  Skipping %s.\n", pkgName);
+            if usejava('desktop')
+                reply = input(sprintf("  Remove '%s' anyway? [y/N]: ", pkgName), "s");
+                if ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
+                    tbx_printf("  Skipping %s.\n", pkgName);
+                    continue;
+                end
+            else
+                tbx_printf("  Skipping %s (non-interactive mode).\n", pkgName);
                 continue;
             end
         end
@@ -1457,10 +1462,12 @@ function main_update(args)
     end
     tbx_printf("\n");
 
-    reply = input("Proceed? [Y/n]: ", "s");
-    if ~isempty(reply) && ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
-        tbx_printf("Update cancelled.\n");
-        return;
+    if usejava('desktop')
+        reply = input("Proceed? [Y/n]: ", "s");
+        if ~isempty(reply) && ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
+            tbx_printf("Update cancelled.\n");
+            return;
+        end
     end
 
     % Execute updates
@@ -1779,10 +1786,12 @@ function main_sync(~)
     end
 
     tbx_printf("\n");
-    reply = input("Proceed? [Y/n]: ", "s");
-    if ~isempty(reply) && ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
-        tbx_printf("Sync cancelled.\n");
-        return;
+    if usejava('desktop')
+        reply = input("Proceed? [Y/n]: ", "s");
+        if ~isempty(reply) && ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
+            tbx_printf("Sync cancelled.\n");
+            return;
+        end
     end
 
     % Remove extra packages
@@ -1846,6 +1855,9 @@ function main_init(~)
     projectFile = fullfile(pwd, "tbxmanager.json");
     if isfile(projectFile)
         tbx_printWarning("tbxmanager.json already exists in current directory.");
+        if ~usejava('desktop')
+            return;
+        end
         reply = input("Overwrite? [y/N]: ", "s");
         if ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
             tbx_printf("Cancelled.\n");
@@ -2442,7 +2454,11 @@ function tbx_migrateOld()
     tbx_printf("  tbxmanager v2 uses ~/.tbxmanager/ for storage.\n");
     tbx_printf("============================================================\n");
 
-    reply = input("Migrate old packages to new layout? [Y/n]: ", "s");
+    if usejava('desktop')
+        reply = input("Migrate old packages to new layout? [Y/n]: ", "s");
+    else
+        reply = "y";
+    end
     if ~isempty(reply) && ~strcmpi(reply, "y") && ~strcmpi(reply, "yes")
         tbx_printf("Skipping migration. Re-install with 'tbxmanager install'.\n");
         fid = fopen(markerFile, "w");
