@@ -1,6 +1,6 @@
 [project]
 name = "tbxmanager"
-version = "2.0.0"
+version = "1.0.0"
 description = "Infrastructure scripts for tbxmanager — MATLAB package manager"
 requires-python = ">=3.14"
 dependencies = []
@@ -13,7 +13,6 @@ tbx-build-site-data = "scripts.build_packages_data:main"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "2.0.0"
 tag_format = "v$version"
 changelog_file = "CHANGELOG.md"
 update_changelog_on_bump = true
