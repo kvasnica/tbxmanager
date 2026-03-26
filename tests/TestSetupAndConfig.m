@@ -53,6 +53,13 @@ classdef TestSetupAndConfig < matlab.unittest.TestCase
             testCase.verifyTrue(ismember(string(result), valid));
         end
 
+        function testPlatformArchIsCached(testCase)
+            r1 = tbxmanager("internal__", "platformArch");
+            r2 = tbxmanager("internal__", "platformArch");
+            testCase.verifyEqual(string(r1), string(r2), ...
+                'Consecutive calls should return identical cached result');
+        end
+
         function testConfigCreated(testCase)
             tbxmanager("help");
             % Config is only created when tbx_config() is called explicitly

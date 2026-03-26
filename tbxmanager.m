@@ -141,6 +141,11 @@ end
 
 function arch = tbx_platformArch()
 %TBX_PLATFORMARCH  Return MATLAB platform architecture string.
+    persistent cachedArch
+    if ~isempty(cachedArch)
+        arch = cachedArch;
+        return;
+    end
     if ismac
         [~, hw] = system("uname -m");
         hw = strtrim(string(hw));
@@ -160,6 +165,7 @@ function arch = tbx_platformArch()
             arch = "glnxa64";
         end
     end
+    cachedArch = arch;
 end
 
 function rel = tbx_matlabRelease()
