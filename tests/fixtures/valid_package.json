@@ -1,0 +1,19 @@
+{
+  "name": "mpt",
+  "version": "3.1.0",
+  "description": "Multi-Parametric Toolbox for parametric optimization and control",
+  "homepage": "https://github.com/kvasnica/mpt",
+  "license": "GPL-3.0",
+  "authors": ["Michal Kvasnica <michal.kvasnica@gmail.com>"],
+  "matlab": ">=R2022a",
+  "dependencies": {
+    "cddmex": ">=1.0",
+    "hysdel": ">=2.0"
+  },
+  "platforms": {
+    "maci64": "https://github.com/kvasnica/mpt/releases/download/v3.1.0/mpt-maci64.zip",
+    "maca64": "https://github.com/kvasnica/mpt/releases/download/v3.1.0/mpt-maca64.zip",
+    "win64": "https://github.com/kvasnica/mpt/releases/download/v3.1.0/mpt-win64.zip",
+    "glnxa64": "https://github.com/kvasnica/mpt/releases/download/v3.1.0/mpt-glnxa64.zip"
+  }
+}

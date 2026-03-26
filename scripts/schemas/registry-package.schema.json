@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tbxmanager.com/schema/registry-package.schema.json",
+  "title": "Registry Package Entry",
+  "description": "Schema for packages/[name]/package.json in the tbxmanager-registry repository.",
+  "type": "object",
+  "required": ["name", "description", "versions"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_-]*$",
+      "maxLength": 50
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri"
+    },
+    "license": {
+      "type": "string"
+    },
+    "authors": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "versions": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/version_entry"
+      },
+      "propertyNames": {
+        "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "version_entry": {
+      "type": "object",
+      "required": ["platforms"],
+      "properties": {
+        "matlab": {
+          "type": "string",
+          "pattern": "^(>=|==)R20[0-9]{2}[ab]$"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "propertyNames": { "pattern": "^[a-z][a-z0-9_-]*$" }
+        },
+        "platforms": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "enum": ["win64", "maci64", "maca64", "glnxa64", "all"]
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/artifact"
+          }
+        },
+        "released": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["url"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sha256": {
+          "oneOf": [
+            { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

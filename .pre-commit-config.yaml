@@ -1,0 +1,84 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  # ── General file hygiene ──────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0  # autoupdated
+    hooks:
+      - id: trailing-whitespace
+        stages: [pre-commit]
+      - id: end-of-file-fixer
+        stages: [pre-commit]
+      - id: check-yaml
+        stages: [pre-commit]
+      - id: check-json
+        stages: [pre-commit]
+      - id: check-merge-conflict
+        stages: [pre-commit]
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+        stages: [pre-commit]
+      - id: detect-private-key
+        stages: [pre-commit]
+      - id: check-symlinks
+        stages: [pre-commit]
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+        stages: [pre-commit]
+      - id: no-commit-to-branch
+        args: ['--branch', 'master']
+        stages: [pre-commit]
+
+  # ── Conventional commit message (commitizen) ─────────────────────────
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.13.9  # autoupdated
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # ── Python (scripts/) ────────────────────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.7  # autoupdated
+    hooks:
+      - id: ruff
+        args: ['--fix']
+        stages: [pre-commit]
+        files: ^scripts/
+      - id: ruff-format
+        stages: [pre-commit]
+        files: ^scripts/
+
+  # ── Shell scripts (.claude/hooks/) ────────────────────────────────────
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.11.0.1  # autoupdated
+    hooks:
+      - id: shellcheck
+        stages: [pre-commit]
+
+  # ── GitHub Actions workflows ──────────────────────────────────────────
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.11  # autoupdated
+    hooks:
+      - id: actionlint
+        stages: [pre-commit]
+
+  # ── Markdown ──────────────────────────────────────────────────────────
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.48.0  # autoupdated
+    hooks:
+      - id: markdownlint
+        args: ['--disable', 'MD013', 'MD030', 'MD033', 'MD041', '--']
+        stages: [pre-commit]
+        exclude: ^(CHANGELOG\.md|\.claude/)
+
+  # ── JSON Schema validation ───────────────────────────────────────────
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.37.0  # autoupdated
+    hooks:
+      - id: check-jsonschema
+        name: validate JSON schemas (metaschema)
+        stages: [pre-commit]
+        files: ^scripts/schemas/.*\.schema\.json$
+        args: ['--schemafile', 'https://json-schema.org/draft/2020-12/schema']
