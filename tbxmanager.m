@@ -476,6 +476,11 @@ function sources = tbx_getSources()
         return;
     end
     raw = data.sources;
+    % Handle empty sources array (jsondecode returns [] for empty JSON array)
+    if isnumeric(raw) && isempty(raw)
+        sources = strings(1, 0);
+        return;
+    end
     % jsondecode returns various types depending on content:
     % - cell array of char vectors for string arrays
     % - char vector for single string
@@ -499,10 +504,7 @@ function sources = tbx_getSources()
             end
         end
     else
-        sources = "https://kvasnica.github.io/tbxmanager-registry/index.json";
-    end
-    if isempty(sources)
-        sources = string.empty;
+        sources = strings(1, 0);
     end
 end
 
@@ -759,11 +761,11 @@ function plan = tbx_resolve(requested, index)
         resolved(char(pkgName)) = char(foundVersion);
         visited(char(pkgName)) = true;
 
-        entry.name = pkgName;
-        entry.version = foundVersion;
-        entry.url = foundUrl;
-        entry.sha256 = foundSha;
-        entry.platform = foundPlatform;
+        entry.name = string(pkgName);
+        entry.version = string(foundVersion);
+        entry.url = string(foundUrl);
+        entry.sha256 = string(foundSha);
+        entry.platform = string(foundPlatform);
         entry.dependencies = foundDeps;
         plan(end+1) = entry; %#ok<AGROW>
 
@@ -838,23 +840,45 @@ function [url, sha, platform] = tbx_resolvePlatform(platforms, arch)
     % Try exact platform
     if isfield(platforms, char(arch))
         p = platforms.(char(arch));
-        url = string(p.url);
-        sha = string(p.sha256);
+        if numel(p) > 1, p = p(1); end
+        url = tbx_scalarString(p.url);
+        sha = tbx_scalarString(p.sha256);
         platform = string(arch);
         return;
     elseif isfield(platforms, archField)
         p = platforms.(archField);
-        url = string(p.url);
-        sha = string(p.sha256);
+        if numel(p) > 1, p = p(1); end
+        url = tbx_scalarString(p.url);
+        sha = tbx_scalarString(p.sha256);
         platform = string(arch);
         return;
     end
     % Fallback to "all"
     if isfield(platforms, "all")
         p = platforms.all;
-        url = string(p.url);
-        sha = string(p.sha256);
+        if numel(p) > 1, p = p(1); end
+        url = tbx_scalarString(p.url);
+        sha = tbx_scalarString(p.sha256);
         platform = "all";
+    end
+end
+
+function s = tbx_scalarString(val)
+%TBX_SCALARSTRING  Safely convert any jsondecode output to a scalar string.
+    if iscell(val)
+        s = string(val{1});
+    elseif ischar(val)
+        if size(val, 1) > 1
+            s = string(deblank(val(1, :)));
+        else
+            s = string(val);
+        end
+    elseif isstring(val) && isscalar(val)
+        s = val;
+    elseif isstring(val)
+        s = val(1);
+    else
+        s = string(val);
     end
 end
 
@@ -1207,9 +1231,16 @@ end
 function tbx_installSinglePackage(pkg, cacheDir)
 %TBX_INSTALLSINGLEPACKAGE  Download, verify, extract, enable one package.
     % Download to cache
-    [~, ~, urlExt] = fileparts(char(pkg.url));
-    if isempty(urlExt)
-        urlExt = ".zip";
+    urlStr = tbx_scalarString(pkg.url);
+    if endsWith(urlStr, ".tar.gz")
+        urlExt = ".tar.gz";
+    elseif endsWith(urlStr, ".tgz")
+        urlExt = ".tgz";
+    else
+        [~, ~, urlExt] = fileparts(char(urlStr));
+        if isempty(urlExt)
+            urlExt = ".zip";
+        end
     end
     cacheFile = fullfile(cacheDir, pkg.name + "-" + pkg.version + string(urlExt));
     if ~isfile(cacheFile)
@@ -1252,7 +1283,15 @@ function tbx_installSinglePackage(pkg, cacheDir)
     end
     mkdir(char(tmpDir));
     try
-        unzip(char(cacheFile), char(tmpDir));
+        cacheStr = string(cacheFile);
+        if endsWith(cacheStr, ".tar.gz") || endsWith(cacheStr, ".tgz")
+            untar(char(cacheFile), char(tmpDir));
+        elseif endsWith(cacheStr, ".zip")
+            unzip(char(cacheFile), char(tmpDir));
+        else
+            error("TBXMANAGER:UnsupportedArchive", ...
+                "Unsupported archive format: %s", cacheFile);
+        end
     catch ME
         error("TBXMANAGER:ExtractFailed", ...
             "Failed to extract %s: %s", cacheFile, ME.message);

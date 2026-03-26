@@ -1,14 +1,14 @@
 classdef TestInstallWorkflow < matlab.unittest.TestCase
     % Integration tests for install, uninstall, update, enable, disable,
-    % restorepath. Uses local file:// URLs with mock packages.
+    % restorepath. Creates mock packages on the fly — fully self-contained.
 
     properties
         TempDir
         OrigHome
         OrigDir
         OrigPath
-        FixturesDir
         MockIndexFile
+        MockPkgDir
     end
 
     methods (TestMethodSetup)
@@ -20,15 +20,19 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             testCase.OrigPath = path;
             setenv("TBXMANAGER_HOME", testCase.TempDir);
 
-            testCase.FixturesDir = fullfile(fileparts(mfilename('fullpath')), 'fixtures');
+            testCase.MockPkgDir = fullfile(testCase.TempDir, "mock_packages");
+            mkdir(testCase.MockPkgDir);
             testCase.MockIndexFile = fullfile(testCase.TempDir, "mock_index.json");
 
             % Initialize tbxmanager
             tbxmanager("help");
 
-            % Create mock index and configure source using tbxmanager commands
+            % Create mock packages and index
+            testCase.createMockPackages();
             testCase.createMockIndex();
-            srcUrl = strrep(['file://' char(testCase.MockIndexFile)], '\', '/');
+
+            % Point tbxmanager to local mock index
+            srcUrl = char("file://" + replace(string(testCase.MockIndexFile), "\", "/"));
             tbxmanager("source", "remove", "https://kvasnica.github.io/tbxmanager-registry/index.json");
             tbxmanager("source", "add", srcUrl);
 
@@ -41,52 +45,107 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
     end
 
     methods (Access = private)
-        function createMockIndex(testCase)
-            pkgDir = fullfile(testCase.FixturesDir, 'mock_packages');
-
-            idx.index_version = 1;
-            idx.generated = '2026-01-01T00:00:00Z';
-
-            tp1v1.matlab = '>=R2022a';
-            tp1v1.dependencies = struct();
-            tp1v1.platforms.all.url = ['file://' fullfile(pkgDir, 'testpkg1-1.0.0-all.zip')];
-            tp1v1.platforms.all.sha256 = '9a430896c128c529dea9d748328d246dc393ec321b8c840485c26514bb460b12';
-            tp1v1.released = '2025-01-01';
-
-            tp1v2.matlab = '>=R2022a';
-            tp1v2.dependencies = struct();
-            tp1v2.platforms.all.url = ['file://' fullfile(pkgDir, 'testpkg1-2.0.0-all.zip')];
-            tp1v2.platforms.all.sha256 = '9de8591ba40cde60179f79a8767d5af263483d3baf229cf9d40cfd7157a8d829';
-            tp1v2.released = '2025-06-01';
-
-            pkg1.name = 'testpkg1';
-            pkg1.description = 'Test package 1';
-            pkg1.license = 'MIT';
-            pkg1.authors = {'Test'};
-            pkg1.latest = '2.0.0';
-            pkg1.versions.x1_0_0 = tp1v1;
-            pkg1.versions.x2_0_0 = tp1v2;
-
-            tp2v1.matlab = '>=R2022a';
-            tp2v1.dependencies.testpkg1 = '>=1.0';
-            tp2v1.platforms.all.url = ['file://' fullfile(pkgDir, 'testpkg2-1.0.0-all.zip')];
-            tp2v1.platforms.all.sha256 = 'c3a8dc80781984eba7ac5b67b288cf1e6f136d33a45aa2610a5d34b92c345280';
-            tp2v1.released = '2025-03-01';
-
-            pkg2.name = 'testpkg2';
-            pkg2.description = 'Test package 2 (depends on testpkg1)';
-            pkg2.license = 'MIT';
-            pkg2.authors = {'Test'};
-            pkg2.latest = '1.0.0';
-            pkg2.versions.x1_0_0 = tp2v1;
-
-            idx.packages.testpkg1 = pkg1;
-            idx.packages.testpkg2 = pkg2;
-
-            jsonStr = jsonencode(idx);
-            fid = fopen(testCase.MockIndexFile, 'w');
-            fwrite(fid, jsonStr);
+        function createMockPackages(testCase)
+            % Create testpkg1 v1.0.0
+            d = fullfile(testCase.MockPkgDir, "testpkg1_v1");
+            mkdir(d);
+            fid = fopen(fullfile(d, "testpkg1_hello.m"), 'w');
+            fprintf(fid, 'function testpkg1_hello()\ndisp(''hello from testpkg1 v1'');\nend\n');
             fclose(fid);
+            zip(fullfile(testCase.MockPkgDir, "testpkg1-1.0.0-all.zip"), '*', d);
+
+            % Create testpkg1 v2.0.0
+            d2 = fullfile(testCase.MockPkgDir, "testpkg1_v2");
+            mkdir(d2);
+            fid = fopen(fullfile(d2, "testpkg1_hello.m"), 'w');
+            fprintf(fid, 'function testpkg1_hello()\ndisp(''hello from testpkg1 v2'');\nend\n');
+            fclose(fid);
+            zip(fullfile(testCase.MockPkgDir, "testpkg1-2.0.0-all.zip"), '*', d2);
+
+            % Create testpkg2 v1.0.0
+            d3 = fullfile(testCase.MockPkgDir, "testpkg2_v1");
+            mkdir(d3);
+            fid = fopen(fullfile(d3, "testpkg2_hello.m"), 'w');
+            fprintf(fid, 'function testpkg2_hello()\ndisp(''hello from testpkg2'');\nend\n');
+            fclose(fid);
+            zip(fullfile(testCase.MockPkgDir, "testpkg2-1.0.0-all.zip"), '*', d3);
+
+            % Create testpkg3 v1.0.0 as tar.gz
+            d4 = fullfile(testCase.MockPkgDir, "testpkg3_v1");
+            mkdir(d4);
+            fid = fopen(fullfile(d4, "testpkg3_hello.m"), 'w');
+            fprintf(fid, 'function testpkg3_hello()\ndisp(''hello from testpkg3'');\nend\n');
+            fclose(fid);
+            tarFile = fullfile(testCase.MockPkgDir, "testpkg3-1.0.0-all.tar.gz");
+            system(sprintf('tar czf "%s" -C "%s" .', tarFile, d4));
+        end
+
+        function hash = computeSha256(~, filepath)
+            % Compute SHA256 using Java MessageDigest
+            md = java.security.MessageDigest.getInstance("SHA-256");
+            fid = fopen(filepath, 'r');
+            while ~feof(fid)
+                chunk = fread(fid, 65536, '*uint8');
+                if ~isempty(chunk)
+                    md.update(chunk);
+                end
+            end
+            fclose(fid);
+            hashBytes = md.digest();
+            hexChars = '0123456789abcdef';
+            hash = blanks(length(hashBytes) * 2);
+            for i = 1:length(hashBytes)
+                b = typecast(int8(hashBytes(i)), 'uint8');
+                hash((i-1)*2 + 1) = hexChars(bitshift(b, -4) + 1);
+                hash((i-1)*2 + 2) = hexChars(bitand(b, 15) + 1);
+            end
+        end
+
+        function createMockIndex(testCase)
+            d = testCase.MockPkgDir;
+
+            % Compute hashes at runtime
+            h1v1 = testCase.computeSha256(fullfile(d, "testpkg1-1.0.0-all.zip"));
+            h1v2 = testCase.computeSha256(fullfile(d, "testpkg1-2.0.0-all.zip"));
+            h2v1 = testCase.computeSha256(fullfile(d, "testpkg2-1.0.0-all.zip"));
+            h3v1 = testCase.computeSha256(fullfile(d, "testpkg3-1.0.0-all.tar.gz"));
+
+            % Build URLs
+            u1v1 = char("file://" + replace(string(fullfile(d, "testpkg1-1.0.0-all.zip")), "\", "/"));
+            u1v2 = char("file://" + replace(string(fullfile(d, "testpkg1-2.0.0-all.zip")), "\", "/"));
+            u2v1 = char("file://" + replace(string(fullfile(d, "testpkg2-1.0.0-all.zip")), "\", "/"));
+            u3v1 = char("file://" + replace(string(fullfile(d, "testpkg3-1.0.0-all.tar.gz")), "\", "/"));
+
+            % Build deterministic raw JSON (version keys like "1.0.0" are invalid struct fields).
+            fmt = @(s) strrep(testCase.jsonEscape(s), '%', '%%');
+            vfmt = @(u,h,r) sprintf('{"matlab":">=R2022a","dependencies":{},"platforms":{"all":{"url":"%s","sha256":"%s"}},"released":"%s"}', ...
+                fmt(u), fmt(h), fmt(r));
+            v2dep = sprintf('{"matlab":">=R2022a","dependencies":{"testpkg1":">=1.0"},"platforms":{"all":{"url":"%s","sha256":"%s"}},"released":"2025-03-01"}', ...
+                fmt(u2v1), fmt(h2v1));
+            json = [...
+                '{' ...
+                    '"index_version":1,' ...
+                    '"generated":"2026-01-01T00:00:00Z",' ...
+                    '"packages":{' ...
+                        '"testpkg1":{"name":"testpkg1","description":"Test package 1","license":"MIT","authors":["Test"],"latest":"2.0.0",' ...
+                        '"versions":{"1.0.0":' vfmt(u1v1, h1v1, '2025-01-01') ',"2.0.0":' vfmt(u1v2, h1v2, '2025-06-01') '}},' ...
+                        '"testpkg2":{"name":"testpkg2","description":"Test package 2","license":"MIT","authors":["Test"],"latest":"1.0.0",' ...
+                        '"versions":{"1.0.0":' v2dep '}},' ...
+                        '"testpkg3":{"name":"testpkg3","description":"Test package 3","license":"MIT","authors":["Test"],"latest":"1.0.0",' ...
+                        '"versions":{"1.0.0":' vfmt(u3v1, h3v1, '2025-01-01') '}}' ...
+                    '}' ...
+                '}'];
+
+            fid = fopen(testCase.MockIndexFile, 'w');
+            fprintf(fid, '%s', json);
+            fclose(fid);
+        end
+
+        function s = jsonEscape(~, s0)
+            % Escape JSON special characters in scalar text fragments.
+            s = char(s0);
+            s = strrep(s, '\', '\\');
+            s = strrep(s, '"', '\"');
         end
     end
 
@@ -120,6 +179,12 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             tbxmanager("install", "testpkg1");
             pkgDir = fullfile(testCase.TempDir, "packages", "testpkg1");
             testCase.verifyTrue(isfolder(pkgDir), 'Package directory should exist');
+        end
+
+        function testInstallTarGzPackage(testCase)
+            tbxmanager("install", "testpkg3");
+            pkgDir = fullfile(testCase.TempDir, "packages", "testpkg3");
+            testCase.verifyTrue(isfolder(pkgDir), 'tar.gz package should be installed');
         end
 
         function testInstallCreatesFiles(testCase)
