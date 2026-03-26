@@ -1,7 +1,7 @@
 # tbxmanager
 
-[![Test](https://github.com/kvasnica/tbxmanager/actions/workflows/test.yml/badge.svg)](https://github.com/kvasnica/tbxmanager/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/kvasnica/tbxmanager/branch/dev/graph/badge.svg)](https://codecov.io/gh/kvasnica/tbxmanager)
+[![Test](https://github.com/MarekWadinger/tbxmanager/actions/workflows/test.yml/badge.svg)](https://github.com/MarekWadinger/tbxmanager/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/MarekWadinger/tbxmanager/graph/badge.svg?token=TmB6OzWFfo)](https://codecov.io/gh/MarekWadinger/tbxmanager)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![MATLAB R2022a+](https://img.shields.io/badge/MATLAB-R2022a+-orange.svg)](https://mathworks.com/products/matlab.html)
 
