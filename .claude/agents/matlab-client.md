@@ -8,6 +8,10 @@ tools:
   - Glob
   - Grep
   - Bash
+allowedTools:
+  - "Bash(make:*)"
+  - "Bash(/Applications/MATLAB_R2025b.app/bin/matlab:*)"
+  - "Bash(git:*)"
 ---
 
 # MATLAB Client Agent
@@ -180,4 +184,15 @@ Sections in order:
 - Output: `fprintf` for user messages, never `disp`
 - File I/O: always `onCleanup` for file handles
 - Paths: always `fullfile`, never hardcoded separators
-- No globals/persistent except config cache in `tbx_setup`
+- `persistent` variables allowed for caching immutable values (platform arch, auto-confirm flag, index cache)
+
+## Verification (MANDATORY)
+
+**Every change to tbxmanager.m MUST be verified locally before committing:**
+
+```bash
+make test-matlab-verbose              # run full test suite
+make test-matlab-single CLASS=TestX   # run single test class
+```
+
+MATLAB R2025b is at `/Applications/MATLAB_R2025b.app/bin/matlab`. If tests fail, fix the code — never commit broken code.

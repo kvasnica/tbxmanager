@@ -8,6 +8,10 @@ tools:
   - Glob
   - Grep
   - Bash
+allowedTools:
+  - "Bash(git:*)"
+  - "Bash(make:*)"
+  - "Bash(uv:*)"
 ---
 
 # Schema Designer Agent

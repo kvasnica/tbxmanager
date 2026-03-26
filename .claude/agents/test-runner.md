@@ -8,6 +8,13 @@ tools:
   - Glob
   - Grep
   - Bash
+allowedTools:
+  - "Bash(make:*)"
+  - "Bash(/Applications/MATLAB_R2025b.app/bin/matlab:*)"
+  - "Bash(uv:*)"
+  - "Bash(git:*)"
+  - "Bash(tar:*)"
+  - "Bash(shasum:*)"
 ---
 
 # Test Runner Agent
@@ -194,5 +201,17 @@ actionlint .github/workflows/*.yml
 - Use `verifyEqual`, `verifyTrue`, `verifyError` (not assert — verify continues on failure)
 - Each test must be independent — no ordering dependencies
 - Tests clean up via `addTeardown`, never rely on order
-- Keep test packages tiny (<1KB zips)
+- **Tests must be self-contained**: create all mock data at runtime (use `zip()`, `system("tar ...")`, `fopen/fwrite` for JSON). Never depend on static fixture files in `tests/fixtures/mock_packages/`
 - Use `TBXMANAGER_HOME` env var to isolate test storage from real installation
+- Compute SHA256 hashes at runtime using the `computeSha256` helper method
+
+## Verification (MANDATORY)
+
+**Always run tests locally before committing any test or code changes:**
+
+```bash
+make test-matlab-verbose                          # full suite
+make test-matlab-single CLASS=TestInstallWorkflow # single class
+```
+
+MATLAB R2025b is at `/Applications/MATLAB_R2025b.app/bin/matlab`. If any test fails, fix it before committing — never commit broken tests.

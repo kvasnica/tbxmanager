@@ -134,16 +134,28 @@ merge to master ──→ deploy-site.yml (docs)
 - Releases: merge `dev` → `master` triggers automatic version bump
 - Main branch: `master`
 
+### Verification Policy (MANDATORY)
+
+**All code changes MUST be verified before committing.** Never commit code that hasn't been executed and confirmed working.
+
+- **MATLAB changes** (`tbxmanager.m`, `tests/*.m`): run `make test-matlab-verbose` or `make test-matlab-single CLASS=TestName`
+- **Python changes** (`scripts/`): run `make test`
+- **Schema changes** (`scripts/schemas/`): run `make validate`
+- MATLAB R2025b is installed locally at `/Applications/MATLAB_R2025b.app/bin/matlab`
+- Tests must be **self-contained**: create all mock data at runtime (zip, tar.gz, JSON), never depend on static fixture files
+- If tests fail, fix the code before committing — do not commit broken code
+
 ### Commit Policy (MANDATORY)
 
 **Commit after every completed unit of work.** Do not batch up changes across multiple tasks.
 
 1. After finishing a logical piece of work (new file, feature, fix, refactor), immediately stage and commit.
-2. Use conventional commit format: `<type>(<scope>): <description>` (enforced by commitizen pre-commit hook).
-3. Write descriptive commit messages — they are the source for `cz changelog`. Do NOT manually edit CHANGELOG.md.
-4. Always include `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` trailer.
-5. Always ask the user for approval before running `git commit`.
-6. Never use `git add -A` or `git add .` — stage specific files by name.
-7. Valid types: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `perf`.
-8. Valid scopes: `client`, `registry`, `schema`, `site`, `migration`, `agents`, `tests`.
-9. Releases: use `cz bump` (bumps version, generates CHANGELOG.md, creates git tag).
+2. **Verify changes pass tests before committing** (see Verification Policy above).
+3. Use conventional commit format: `<type>(<scope>): <description>` (enforced by commitizen pre-commit hook).
+4. Write descriptive commit messages — they are the source for `cz changelog`. Do NOT manually edit CHANGELOG.md.
+5. Always include `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>` trailer.
+6. Always ask the user for approval before running `git commit`.
+7. Never use `git add -A` or `git add .` — stage specific files by name.
+8. Valid types: `feat`, `fix`, `refactor`, `docs`, `test`, `ci`, `chore`, `style`, `perf`.
+9. Valid scopes: `client`, `registry`, `schema`, `site`, `migration`, `agents`, `tests`.
+10. Releases: use `cz bump` (bumps version, generates CHANGELOG.md, creates git tag).

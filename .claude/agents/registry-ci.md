@@ -10,6 +10,11 @@ tools:
   - Bash
   - WebSearch
   - WebFetch
+allowedTools:
+  - "Bash(git:*)"
+  - "Bash(make:*)"
+  - "Bash(uv:*)"
+  - "Bash(act:*)"
 ---
 
 # Registry CI Agent

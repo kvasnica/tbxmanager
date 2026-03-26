@@ -10,6 +10,10 @@ tools:
   - Bash
   - WebSearch
   - WebFetch
+allowedTools:
+  - "Bash(git:*)"
+  - "Bash(make:*)"
+  - "Bash(uv:*)"
 ---
 
 # GitHub Pages Agent

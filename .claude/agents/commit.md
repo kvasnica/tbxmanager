@@ -7,6 +7,11 @@ tools:
   - Glob
   - Grep
   - Bash
+allowedTools:
+  - "Bash(git:*)"
+  - "Bash(make:*)"
+  - "Bash(/Applications/MATLAB_R2025b.app/bin/matlab:*)"
+  - "Bash(pre-commit:*)"
 ---
 
 # Conventional Commit Agent
@@ -96,11 +101,22 @@ Write a commit message following the format above:
 
 **The subject line and body become changelog entries via `cz changelog`.** Write them as if they will be read by end users — clear, descriptive, and meaningful. The subject becomes the bullet point; the body provides context.
 
-### Step 4: Present for Approval
+### Step 4: Verify Changes Work
+
+**MANDATORY before committing.** Run the appropriate verification:
+
+- MATLAB code: `make test-matlab-verbose` or `make test-matlab-single CLASS=TestName`
+- Python code: `make test`
+- Schemas: `make validate`
+
+If tests fail, fix the code first. **Never commit broken code.**
+
+### Step 5: Present for Approval
 
 Show the user:
 1. The staged files (`git diff --staged --stat`)
 2. The full commit message
+3. Test results summary (which tests passed)
 
 Then **ask explicitly**: "Approve?" and wait for confirmation.
 

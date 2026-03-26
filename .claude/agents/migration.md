@@ -9,6 +9,11 @@ tools:
   - Grep
   - Bash
   - WebFetch
+allowedTools:
+  - "Bash(git:*)"
+  - "Bash(make:*)"
+  - "Bash(uv:*)"
+  - "Bash(sqlite3:*)"
 ---
 
 # Migration Agent

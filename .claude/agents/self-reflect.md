@@ -8,6 +8,10 @@ tools:
   - Glob
   - Grep
   - Bash
+allowedTools:
+  - "Bash(git:*)"
+  - "Bash(make:*)"
+  - "Bash(/Applications/MATLAB_R2025b.app/bin/matlab:*)"
 ---
 
 # Self-Reflect Agent
@@ -73,6 +77,14 @@ Did this commit affect contracts between workstreams?
 - Schema changes that affect matlab-client, registry-ci, or github-pages
 - New fields or formats that other agents need to know about
 - Naming/terminology changes that should be consistent across all agents
+
+#### 3e. Verification
+Was the code verified before committing?
+
+- If MATLAB code was changed: were tests run via `make test-matlab-verbose`?
+- If tests were added/changed: are they self-contained (create mock data at runtime)?
+- If tests depend on static fixture files: flag as violation — tests must generate their own data
+- **Score 0 if code was committed without running tests.**
 
 ### Step 4: Decide — Act or Log
 
