@@ -2,7 +2,7 @@
 
 ## How the Registry Works
 
-The tbxmanager registry is a Git repository at [kvasnica/tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry). Each package has a JSON file at `packages/[name]/package.json` containing metadata and download URLs for all versions.
+The tbxmanager registry is a Git repository at [MarekWadinger/tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry). Each package has a JSON file at `packages/[name]/package.json` containing metadata and download URLs for all versions.
 
 When a PR is merged:
 
@@ -12,7 +12,7 @@ When a PR is merged:
 
 ## Submitting a New Package
 
-1. **Fork** the [tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry) repo
+1. **Fork** the [tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry) repo
 2. **Create** `packages/your-package/package.json` with the required format
 3. **Open a PR** — CI validates your submission automatically
 4. **Fix any issues** flagged by CI
@@ -43,11 +43,11 @@ See [Creating Packages](creating-packages.md) for the full format specification.
 
 - **Broken download links**: Open an issue on the registry repo
 - **Package bugs**: Contact the package author (see homepage/authors)
-- **tbxmanager client bugs**: Open an issue on [kvasnica/tbxmanager](https://github.com/kvasnica/tbxmanager)
+- **tbxmanager client bugs**: Open an issue on [MarekWadinger/tbxmanager](https://github.com/MarekWadinger/tbxmanager)
 
 ## Contributing to tbxmanager Itself
 
-1. Fork [kvasnica/tbxmanager](https://github.com/kvasnica/tbxmanager)
+1. Fork [MarekWadinger/tbxmanager](https://github.com/MarekWadinger/tbxmanager)
 2. Create a feature branch from `dev`
 3. Make changes to `tbxmanager.m` and add tests
 4. Open a PR to `dev`

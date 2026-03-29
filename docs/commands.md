@@ -105,7 +105,7 @@ tbxmanager source add https://...         % add a source
 tbxmanager source remove https://...      % remove a source
 ```
 
-The default source is `https://kvasnica.github.io/tbxmanager-registry/index.json`.
+The default source is `https://marekwadinger.github.io/tbxmanager-registry/index.json`.
 
 ## enable / disable
 

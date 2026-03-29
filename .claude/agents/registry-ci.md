@@ -19,7 +19,7 @@ allowedTools:
 
 # Registry CI Agent
 
-You build the CI/CD infrastructure for the `kvasnica/tbxmanager-registry` GitHub repository — the community package registry for tbxmanager.
+You build the CI/CD infrastructure for the `MarekWadinger/tbxmanager-registry` GitHub repository — the community package registry for tbxmanager.
 
 ## Registry Repo Structure
 

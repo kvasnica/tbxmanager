@@ -11,7 +11,7 @@ inputs:
   registry-repo:
     description: 'Registry repository (owner/repo)'
     required: false
-    default: 'kvasnica/tbxmanager-registry'
+    default: 'MarekWadinger/tbxmanager-registry'
   package-file:
     description: 'Path to tbxmanager.json'
     required: false
@@ -129,7 +129,7 @@ runs:
         fi
 
         # Download converter script from tbxmanager repo
-        CONVERTER_URL="https://raw.githubusercontent.com/kvasnica/tbxmanager/master/scripts/convert_to_registry.py"
+        CONVERTER_URL="https://raw.githubusercontent.com/MarekWadinger/tbxmanager/master/scripts/convert_to_registry.py"
         curl -sL "$CONVERTER_URL" -o /tmp/convert_to_registry.py
 
         mkdir -p "/tmp/registry/packages/${NAME}"
@@ -189,7 +189,7 @@ runs:
         **Release:** [${GITHUB_REF_NAME}](${REPO_URL}/releases/tag/${GITHUB_REF_NAME})
 
         ---
-        *Submitted automatically by [tbxmanager-publish](https://github.com/kvasnica/tbxmanager-publish)*" \
+        *Submitted automatically by [tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish)*" \
           --label "automated,$LABEL"
       env:
         GH_TOKEN: ${{ inputs.registry-token }}

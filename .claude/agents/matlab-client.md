@@ -59,7 +59,7 @@ websave('tbxmanager.m', 'https://tbxmanager.com/tbxmanager.m'); tbxmanager; save
 └── config.json                   # User configuration
 ```
 
-Default index source: `https://kvasnica.github.io/tbxmanager-registry/index.json`
+Default index source: `https://marekwadinger.github.io/tbxmanager-registry/index.json`
 
 ## Command Set
 

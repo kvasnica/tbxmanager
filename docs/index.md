@@ -15,7 +15,7 @@ savepath
 ```
 
 [Get Started](getting-started.md){ .md-button .md-button--primary }
-[Browse Packages](https://github.com/kvasnica/tbxmanager-registry){ .md-button }
+[Browse Packages](https://github.com/MarekWadinger/tbxmanager-registry){ .md-button }
 
 ---
 

@@ -42,12 +42,12 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: kvasnica/tbxmanager-publish@v1
+      - uses: MarekWadinger/tbxmanager-publish@v1
         with:
           registry-token: ${{ secrets.TBXMANAGER_REGISTRY_TOKEN }}
 ```
 
-Then add a `TBXMANAGER_REGISTRY_TOKEN` secret to your repo (Settings > Secrets). This should be a GitHub Personal Access Token with permission to create PRs on the [tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry).
+Then add a `TBXMANAGER_REGISTRY_TOKEN` secret to your repo (Settings > Secrets). This should be a GitHub Personal Access Token with permission to create PRs on the [tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry).
 
 ## Step 3: Create a Release
 
@@ -83,7 +83,7 @@ git tag v1.0.0 && git push --tags
     - Uploads archive to release assets
     - Computes SHA256 hash
     - Converts tbxmanager.json to registry format
-    - Opens PR to kvasnica/tbxmanager-registry
+    - Opens PR to MarekWadinger/tbxmanager-registry
          |
          v
   CI validates (JSON, URLs, SHA256)

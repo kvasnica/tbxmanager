@@ -2,7 +2,7 @@
 
 ## The Fast Way: Automated Publishing
 
-The easiest way to publish a MATLAB package is with the [tbxmanager-publish](https://github.com/kvasnica/tbxmanager-publish) GitHub Action. See the [Quick Start](quick-start-authors.md) for a 3-step guide.
+The easiest way to publish a MATLAB package is with the [tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish) GitHub Action. See the [Quick Start](quick-start-authors.md) for a 3-step guide.
 
 With the publish action, you only maintain `tbxmanager.json` in your repo — the action handles archive building, SHA256 hashing, and registry submission automatically.
 
@@ -177,7 +177,7 @@ The registry requires SHA256 hashes for integrity verification:
 
 ### Submitting to the Registry
 
-1. Fork [kvasnica/tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry)
+1. Fork [MarekWadinger/tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry)
 2. Create `packages/my-toolbox/package.json`:
 
 ```json
