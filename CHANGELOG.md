@@ -1,3 +1,9 @@
+## v2.1.0 (2026-03-29)
+
+### Feat
+
+- **registry**: add automated publishing, deprecation/yanking, and author docs
+
 ## v2.0.1 (2026-03-26)
 
 ### Fix
