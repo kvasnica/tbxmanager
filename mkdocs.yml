@@ -34,8 +34,11 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Commands: commands.md
-  - Creating Packages: creating-packages.md
+  - For Package Authors:
+    - Quick Start: quick-start-authors.md
+    - Creating Packages: creating-packages.md
   - Contributing: contributing.md
+  - Troubleshooting: troubleshooting.md
 
 markdown_extensions:
   - pymdownx.highlight:

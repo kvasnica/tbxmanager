@@ -1,0 +1,28 @@
+# Copy this file to .github/workflows/tbxmanager-publish.yml in your package repo.
+#
+# Prerequisites:
+#   1. tbxmanager.json in your repo root (run `tbxmanager init` to create one)
+#   2. A repository secret TBXMANAGER_REGISTRY_TOKEN with a GitHub PAT that has
+#      write access to kvasnica/tbxmanager-registry (for creating PRs)
+#
+# Workflow:
+#   1. Tag your release: git tag v1.0.0 && git push --tags
+#   2. Create a GitHub Release from the tag
+#   3. This action automatically builds archives, computes SHA256, and opens a PR
+
+name: Publish to tbxmanager
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # needed to upload release assets
+    steps:
+      - uses: actions/checkout@v4
+      - uses: kvasnica/tbxmanager-publish@v1
+        with:
+          registry-token: ${{ secrets.TBXMANAGER_REGISTRY_TOKEN }}

@@ -1,5 +1,11 @@
 # Creating Packages
 
+## The Fast Way: Automated Publishing
+
+The easiest way to publish a MATLAB package is with the [tbxmanager-publish](https://github.com/kvasnica/tbxmanager-publish) GitHub Action. See the [Quick Start](quick-start-authors.md) for a 3-step guide.
+
+With the publish action, you only maintain `tbxmanager.json` in your repo — the action handles archive building, SHA256 hashing, and registry submission automatically.
+
 ## Package Metadata
 
 Create a `tbxmanager.json` in your repository root:
@@ -22,6 +28,9 @@ Create a `tbxmanager.json` in your repository root:
 }
 ```
 
+!!! tip
+    Run `tbxmanager init` in your project directory to generate a template.
+
 ### Fields
 
 | Field | Required | Description |
@@ -35,6 +44,7 @@ Create a `tbxmanager.json` in your repository root:
 | `authors` | No | List of `"Name <email>"` strings |
 | `matlab` | No | MATLAB version constraint (e.g., `>=R2022a`) |
 | `dependencies` | No | Map of package names to version constraints |
+| `publish` | No | Publishing config (see below) |
 
 ### Platforms
 
@@ -48,7 +58,74 @@ Create a `tbxmanager.json` in your repository root:
 
 Use `all` if your package is pure MATLAB. Provide platform-specific archives if you include MEX files.
 
-## Building Archives
+### Publish Configuration
+
+Optional section for the automated publish action:
+
+```json
+{
+  "publish": {
+    "exclude": [".git", ".github", "tests", "docs", "benchmarks"],
+    "archive_dir": "dist"
+  }
+}
+```
+
+| Field | Default | Description |
+| ----- | ------- | ----------- |
+| `exclude` | `.git`, `.github`, `tests`, `docs`, `tbxmanager.json` | Patterns to exclude from auto-built archives |
+| `archive_dir` | `dist` | Directory for pre-built platform archives |
+
+## Versioning
+
+Follow [Semantic Versioning](https://semver.org/):
+
+- **MAJOR**: Breaking changes
+- **MINOR**: New features, backward compatible
+- **PATCH**: Bug fixes
+
+## Deprecation and Yanking
+
+### Deprecating a Package
+
+To mark an entire package as deprecated, add a `"deprecated"` field to the registry entry:
+
+```json
+{
+  "name": "old-toolbox",
+  "deprecated": "Use new-toolbox instead",
+  ...
+}
+```
+
+Users will see a warning during `install`, `search`, and `info` but can still install the package.
+
+### Yanking a Version
+
+To mark a specific version as having a critical issue:
+
+```json
+{
+  "versions": {
+    "1.0.0": {
+      "yanked": "Critical bug in dependency resolution",
+      ...
+    }
+  }
+}
+```
+
+Yanked versions are skipped by the resolver. Users can still install them with an explicit pin: `tbxmanager install pkg@==1.0.0`.
+
+Submit deprecation or yank changes as a PR to the registry.
+
+---
+
+## Advanced: Manual Submission
+
+If you prefer not to use the automated publish action, you can submit packages manually.
+
+### Building Archives
 
 Create a zip archive containing your package files:
 
@@ -61,30 +138,44 @@ zip -r ../my-toolbox-all.zip . -x '.git/*' -x '.github/*' -x 'tbxmanager.json'
 zip -r ../my-toolbox-maci64.zip . -x '.git/*' -x '*.mexw64' -x '*.mexa64'
 ```
 
-## Hosting on GitHub Releases
+### Hosting on GitHub Releases
 
 1. Tag your release: `git tag v1.0.0 && git push --tags`
 2. Go to your repo's Releases page
 3. Create a new release from the tag
 4. Upload your archive(s)
-5. Use the release asset URLs in your `tbxmanager.json`
+5. Use the release asset URLs in your registry submission
 
-## Computing SHA256
+### Computing SHA256
 
 The registry requires SHA256 hashes for integrity verification:
 
-```bash
-# macOS
-shasum -a 256 my-toolbox-all.zip
+=== "macOS"
+    ```bash
+    shasum -a 256 my-toolbox-all.zip
+    ```
 
-# Linux
-sha256sum my-toolbox-all.zip
+=== "Linux"
+    ```bash
+    sha256sum my-toolbox-all.zip
+    ```
 
-# Windows (PowerShell)
-Get-FileHash my-toolbox-all.zip -Algorithm SHA256
-```
+=== "Windows (PowerShell)"
+    ```powershell
+    Get-FileHash my-toolbox-all.zip -Algorithm SHA256
+    ```
 
-## Submitting to the Registry
+!!! tip
+    Use the converter script to generate the registry format from your `tbxmanager.json`:
+    ```bash
+    python scripts/convert_to_registry.py \
+      --input tbxmanager.json \
+      --output packages/my-toolbox/package.json \
+      --sha256 all=abc123... \
+      --released 2026-03-28
+    ```
+
+### Submitting to the Registry
 
 1. Fork [kvasnica/tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry)
 2. Create `packages/my-toolbox/package.json`:
@@ -116,14 +207,6 @@ Get-FileHash my-toolbox-all.zip -Algorithm SHA256
 1. CI automatically validates your submission
 1. Once merged, the package appears in the registry
 
-## Versioning
+### Updating (Manual)
 
-Follow [Semantic Versioning](https://semver.org/):
-
-- **MAJOR**: Breaking changes
-- **MINOR**: New features, backward compatible
-- **PATCH**: Bug fixes
-
-## Updating Your Package
-
-To add a new version, update your `package.json` in the registry with a new version entry and open a PR.
+To add a new version, edit your `package.json` in the registry with a new version entry and open a PR.
