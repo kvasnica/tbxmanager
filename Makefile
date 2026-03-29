@@ -1,6 +1,6 @@
 MATLAB ?= /Applications/MATLAB_R2025b.app/bin/matlab
 
-.PHONY: help install dev docs docs-build lint validate migrate test test-matlab test-matlab-verbose clean
+.PHONY: help install dev docs docs-build lint validate migrate test test-matlab test-matlab-verbose matlab-repl clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -10,6 +10,9 @@ install: ## Install dependencies
 
 dev: ## Install dev dependencies
 	uv sync --group dev
+
+matlab-cli: ## Open interactive MATLAB CLI with tbxmanager on path
+	$(MATLAB) -nodesktop -nosplash -r "addpath(genpath('.')); disp('tbxmanager ready. Try: tbxmanager help');"
 
 # ── Docs ──────────────────────────────────────────────
 
@@ -56,13 +59,13 @@ test: lint validate ## Run non-MATLAB checks (lint + validate)
 	@echo "All checks passed"
 
 test-matlab: ## Run MATLAB tests locally
-	$(MATLAB) -batch "addpath(genpath('.')); results = runtests('tests'); disp(results); assertSuccess(results);"
+	$(MATLAB) -batch "addpath(genpath('.')); run_tests;"
 
 test-matlab-verbose: ## Run MATLAB tests with verbose output
-	$(MATLAB) -batch "addpath(genpath('.')); results = runtests('tests', 'OutputDetail', 3); disp(table(results)); assertSuccess(results);"
+	$(MATLAB) -batch "addpath(genpath('.')); run_tests('-v');"
 
 test-matlab-single: ## Run a single test class: make test-matlab-single CLASS=TestVersionConstraints
-	$(MATLAB) -batch "addpath(genpath('.')); results = runtests('tests/$(CLASS).m'); disp(results); assertSuccess(results);"
+	$(MATLAB) -batch "addpath(genpath('.')); run_tests('$(CLASS)');"
 
 test-matlab-debug: ## Dump sources.json bytes for debugging install tests
 	$(MATLAB) -batch "setenv('TBXMANAGER_HOME', fullfile(tempdir,'tbx_debug')); tbxmanager help; sf=fullfile(getenv('TBXMANAGER_HOME'),'state','sources.json'); raw=fileread(sf); fprintf('len=%d bytes: ',numel(raw)); fprintf('%d ',uint8(raw(1:min(80,numel(raw))))); fprintf('\ncontent: >>%s<<\n',raw); jsondecode(raw); disp('jsondecode OK'); rmdir(fullfile(tempdir,'tbx_debug'),'s');"
