@@ -3,6 +3,7 @@
 
 import argparse
 import json
+import re
 import sqlite3
 import sys
 import urllib.error
@@ -218,8 +219,13 @@ def build_index(packages_dir):
         if versions:
             # Sort versions by semver (simple numeric sort)
             def ver_key(v):
-                parts = v.split(".")
-                return tuple(int(p) for p in parts)
+                normalized = v.lstrip("vV")
+                parts = normalized.split(".")
+                key = []
+                for p in parts:
+                    match = re.match(r"(\d+)", p)
+                    key.append(int(match.group(1)) if match else 0)
+                return tuple(key)
 
             versions_sorted = sorted(versions, key=ver_key)
             latest = versions_sorted[-1]

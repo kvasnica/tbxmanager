@@ -707,12 +707,20 @@ function plan = tbx_resolve(requested, index)
         foundPlatform = "";
         foundDeps = struct();
 
+        % Determine if constraint is an exact pin (==X.Y.Z)
+        isExactPin = startsWith(strip(constraint), "==");
+
         for vi = 1:numel(allVersions)
             v = allVersions(vi);
             if ~tbx_satisfiesConstraint(v, constraint)
                 continue;
             end
             vInfo = tbx_getVersionField(pkgInfo.versions, v);
+
+            % Skip yanked versions unless explicitly pinned with ==
+            if isfield(vInfo, "yanked") && ~isempty(vInfo.yanked) && ~isExactPin
+                continue;
+            end
 
             % Check MATLAB version constraint
             if isfield(vInfo, "matlab") && ~isempty(vInfo.matlab)
@@ -1183,6 +1191,21 @@ function main_install(args)
         return;
     end
 
+    % Warn about deprecated or yanked packages
+    for i = 1:numel(plan)
+        pName = char(plan(i).name);
+        if isfield(index.packages, pName)
+            pkgInfo = index.packages.(pName);
+            if isfield(pkgInfo, "deprecated") && ~isempty(pkgInfo.deprecated)
+                tbx_printWarning("Package '%s' is deprecated: %s", pName, string(pkgInfo.deprecated));
+            end
+            vInfo = tbx_getVersionField(pkgInfo.versions, plan(i).version);
+            if isfield(vInfo, "yanked") && ~isempty(vInfo.yanked)
+                tbx_printWarning("Version %s@%s is yanked: %s", pName, plan(i).version, string(vInfo.yanked));
+            end
+        end
+    end
+
     % Filter out already-installed at correct version
     toInstall = struct("name", {}, "version", {}, "url", {}, "sha256", {}, ...
                        "platform", {}, "dependencies", {});
@@ -1623,7 +1646,11 @@ function main_search(args)
             desc = string(pkgInfo.description);
         end
         if contains(lower(string(name)), query) || contains(lower(desc), query)
-            matchNames{end+1} = name; %#ok<AGROW>
+            displayName = name;
+            if isfield(pkgInfo, "deprecated") && ~isempty(pkgInfo.deprecated)
+                displayName = [name, ' [DEPRECATED]']; %#ok<AGROW>
+            end
+            matchNames{end+1} = displayName; %#ok<AGROW>
             matchDescs{end+1} = char(desc); %#ok<AGROW>
             if isfield(pkgInfo, "latest")
                 matchVers{end+1} = char(string(pkgInfo.latest)); %#ok<AGROW>
@@ -1664,6 +1691,9 @@ function main_info(args)
     pkg = index.packages.(char(pkgName));
 
     tbx_printf("Package: %s\n", pkgName);
+    if isfield(pkg, "deprecated") && ~isempty(pkg.deprecated)
+        tbx_printWarning("DEPRECATED: %s", string(pkg.deprecated));
+    end
     if isfield(pkg, "description")
         tbx_printf("Description: %s\n", string(pkg.description));
     end
@@ -1700,6 +1730,9 @@ function main_info(args)
             v = verNames(i);
             vInfo = tbx_getVersionField(pkg.versions, v);
             extra = "";
+            if isfield(vInfo, "yanked") && ~isempty(vInfo.yanked)
+                extra = extra + " [YANKED: " + string(vInfo.yanked) + "]";
+            end
             if isfield(vInfo, "released")
                 extra = extra + " (released: " + string(vInfo.released) + ")";
             end
@@ -1911,13 +1944,17 @@ function main_init(~)
     end
 
     [~, dirName] = fileparts(pwd);
-    project.name = char(dirName);
+    project.name = char(lower(dirName));
+    project.version = "0.1.0";
+    project.description = "";
     project.matlab = char(">=" + tbx_matlabRelease());
+    project.platforms.all = "";
     project.dependencies = struct();
 
     tbx_writeJson(projectFile, project);
     tbx_printf("Created %s\n", projectFile);
-    tbx_printf("Edit the file to add dependencies, then run 'tbxmanager lock'.\n");
+    tbx_printf("Fill in 'description' and 'platforms' URLs, then run 'tbxmanager lock'.\n");
+    tbx_printf("To publish, add the tbxmanager-publish workflow to .github/workflows/.\n");
 end
 
 %% ========================================================================

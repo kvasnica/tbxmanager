@@ -64,6 +64,22 @@
       },
       "minProperties": 1,
       "description": "Platform-specific download URLs"
+    },
+    "publish": {
+      "type": "object",
+      "description": "Publishing configuration (used by tbxmanager-publish action, ignored by MATLAB client)",
+      "properties": {
+        "exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns to exclude from auto-built archives (e.g., tests, docs)"
+        },
+        "archive_dir": {
+          "type": "string",
+          "description": "Directory containing pre-built platform archives (default: dist)"
+        }
+      },
+      "additionalProperties": false
     }
   },
   "additionalProperties": false
