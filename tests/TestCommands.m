@@ -26,13 +26,13 @@ classdef TestCommands < matlab.unittest.TestCase
         % --- help ---
 
         function testHelpRuns(testCase)
-            tbxmanager("help");
-            testCase.verifyTrue(true);
+            out = evalc('tbxmanager("help")');
+            testCase.verifyNotEmpty(out);
         end
 
         function testHelpInstall(testCase)
-            tbxmanager("help", "install");
-            testCase.verifyTrue(true);
+            out = evalc('tbxmanager("help", "install")');
+            testCase.verifyNotEmpty(out);
         end
 
         function testHelpAllCommands(testCase)
@@ -40,7 +40,7 @@ classdef TestCommands < matlab.unittest.TestCase
                     "lock","sync","init","selfupdate","source","enable",...
                     "disable","restorepath","require","cache"];
             for i = 1:numel(cmds)
-                tbxmanager("help", cmds(i));
+                evalc('tbxmanager("help", cmds(i))');
             end
             testCase.verifyTrue(true);
         end
@@ -48,21 +48,21 @@ classdef TestCommands < matlab.unittest.TestCase
         % --- list (empty) ---
 
         function testListEmpty(testCase)
-            tbxmanager("list");
+            evalc('tbxmanager("list")');
             testCase.verifyTrue(true);
         end
 
         % --- source ---
 
         function testSourceList(testCase)
-            tbxmanager("source", "list");
+            evalc('tbxmanager("source", "list")');
             testCase.verifyTrue(true);
         end
 
         function testSourceAddRemove(testCase)
-            tbxmanager("source", "add", "https://example.com/index.json");
-            tbxmanager("source", "list");
-            tbxmanager("source", "remove", "https://example.com/index.json");
+            evalc('tbxmanager("source", "add", "https://example.com/index.json")');
+            evalc('tbxmanager("source", "list")');
+            evalc('tbxmanager("source", "remove", "https://example.com/index.json")');
             testCase.verifyTrue(true);
         end
 
@@ -72,7 +72,7 @@ classdef TestCommands < matlab.unittest.TestCase
             workDir = fullfile(testCase.TempDir, "project");
             mkdir(workDir);
             cd(workDir);
-            tbxmanager("init");
+            evalc('tbxmanager("init")');
             testCase.verifyTrue(isfile(fullfile(workDir, "tbxmanager.json")));
             data = jsondecode(fileread(fullfile(workDir, "tbxmanager.json")));
             testCase.verifyTrue(isfield(data, 'name'));
@@ -82,18 +82,18 @@ classdef TestCommands < matlab.unittest.TestCase
         % --- cache ---
 
         function testCacheList(testCase)
-            tbxmanager("cache", "list");
+            evalc('tbxmanager("cache", "list")');
             testCase.verifyTrue(true);
         end
 
         function testCacheClean(testCase)
             % Ensure setup has run so cache dir exists
-            tbxmanager("help");
+            evalc('tbxmanager("help")');
             cacheDir = fullfile(testCase.TempDir, "cache");
             fid = fopen(fullfile(cacheDir, "test-1.0.0-all.zip"), 'w');
             fwrite(fid, 'fake');
             fclose(fid);
-            tbxmanager("cache", "clean");
+            evalc('tbxmanager("cache", "clean")');
             files = dir(fullfile(cacheDir, "*.zip"));
             testCase.verifyEmpty(files);
         end
@@ -101,14 +101,14 @@ classdef TestCommands < matlab.unittest.TestCase
         % --- unknown command ---
 
         function testUnknownCommand(testCase)
-            tbxmanager("notacommand");
+            evalc('tbxmanager("notacommand")');
             testCase.verifyTrue(true);
         end
 
         % --- enable/disable without packages ---
 
         function testEnableNonexistent(testCase)
-            tbxmanager("enable", "nonexistent_pkg_xyz");
+            evalc('tbxmanager("enable", "nonexistent_pkg_xyz")');
             testCase.verifyTrue(true);
         end
 
@@ -123,7 +123,7 @@ classdef TestCommands < matlab.unittest.TestCase
         % --- restorepath (empty) ---
 
         function testRestorepathEmpty(testCase)
-            tbxmanager("restorepath");
+            evalc('tbxmanager("restorepath")');
             testCase.verifyTrue(true);
         end
 

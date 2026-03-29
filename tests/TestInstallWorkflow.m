@@ -25,7 +25,7 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
             testCase.MockIndexFile = fullfile(testCase.TempDir, "mock_index.json");
 
             % Initialize tbxmanager
-            tbxmanager("help");
+            evalc('tbxmanager("help")');
 
             % Create mock packages and index
             testCase.createMockPackages();
@@ -33,8 +33,8 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
 
             % Point tbxmanager to local mock index
             srcUrl = char("file://" + replace(string(testCase.MockIndexFile), "\", "/"));
-            tbxmanager("source", "remove", "https://kvasnica.github.io/tbxmanager-registry/index.json");
-            tbxmanager("source", "add", srcUrl);
+            evalc('tbxmanager("source", "remove", "https://marekwadinger.github.io/tbxmanager-registry/index.json")');
+            evalc('tbxmanager("source", "add", srcUrl)');
 
             % Teardowns run LIFO: rmdir last (registered first), cd before it
             testCase.addTeardown(@() rmdir(testCase.TempDir, 's'));
@@ -154,54 +154,54 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
         % --- Error handling ---
 
         function testInstallNoArgs(testCase)
-            tbxmanager("install");
+            evalc('tbxmanager("install")');
             testCase.verifyTrue(true);
         end
 
         function testUninstallNoArgs(testCase)
-            tbxmanager("uninstall");
+            evalc('tbxmanager("uninstall")');
             testCase.verifyTrue(true);
         end
 
         function testEnableNoArgs(testCase)
-            tbxmanager("enable");
+            evalc('tbxmanager("enable")');
             testCase.verifyTrue(true);
         end
 
         function testDisableNoArgs(testCase)
-            tbxmanager("disable");
+            evalc('tbxmanager("disable")');
             testCase.verifyTrue(true);
         end
 
         % --- Install ---
 
         function testInstallSinglePackage(testCase)
-            tbxmanager("install", "testpkg1");
+            evalc('tbxmanager("install", "testpkg1")');
             pkgDir = fullfile(testCase.TempDir, "packages", "testpkg1");
             testCase.verifyTrue(isfolder(pkgDir), 'Package directory should exist');
         end
 
         function testInstallTarGzPackage(testCase)
-            tbxmanager("install", "testpkg3");
+            evalc('tbxmanager("install", "testpkg3")');
             pkgDir = fullfile(testCase.TempDir, "packages", "testpkg3");
             testCase.verifyTrue(isfolder(pkgDir), 'tar.gz package should be installed');
         end
 
         function testInstallCreatesFiles(testCase)
-            tbxmanager("install", "testpkg1");
+            evalc('tbxmanager("install", "testpkg1")');
             versions = dir(fullfile(testCase.TempDir, "packages", "testpkg1"));
             versionDirs = versions([versions.isdir] & ~ismember({versions.name}, {'.', '..'}));
             testCase.verifyGreaterThanOrEqual(numel(versionDirs), 1);
         end
 
         function testDoubleInstall(testCase)
-            tbxmanager("install", "testpkg1");
-            tbxmanager("install", "testpkg1");
+            evalc('tbxmanager("install", "testpkg1")');
+            evalc('tbxmanager("install", "testpkg1")');
             testCase.verifyTrue(true);
         end
 
         function testInstallWithDependency(testCase)
-            tbxmanager("install", "testpkg2");
+            evalc('tbxmanager("install", "testpkg2")');
             testCase.verifyTrue(isfolder(fullfile(testCase.TempDir, "packages", "testpkg2")));
             testCase.verifyTrue(isfolder(fullfile(testCase.TempDir, "packages", "testpkg1")));
         end
@@ -209,35 +209,35 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
         % --- List ---
 
         function testListAfterInstall(testCase)
-            tbxmanager("install", "testpkg1");
-            tbxmanager("list");
+            evalc('tbxmanager("install", "testpkg1")');
+            evalc('tbxmanager("list")');
             testCase.verifyTrue(true);
         end
 
         % --- Search ---
 
         function testSearchFindsPackage(testCase)
-            tbxmanager("search", "testpkg");
+            evalc('tbxmanager("search", "testpkg")');
             testCase.verifyTrue(true);
         end
 
         function testSearchNoResults(testCase)
-            tbxmanager("search", "nonexistent_xyz_12345");
+            evalc('tbxmanager("search", "nonexistent_xyz_12345")');
             testCase.verifyTrue(true);
         end
 
         % --- Info ---
 
         function testInfoPackage(testCase)
-            tbxmanager("info", "testpkg1");
+            evalc('tbxmanager("info", "testpkg1")');
             testCase.verifyTrue(true);
         end
 
         % --- Enable/Disable ---
 
         function testEnableDisableCycle(testCase)
-            tbxmanager("install", "testpkg1");
-            tbxmanager("disable", "testpkg1");
+            evalc('tbxmanager("install", "testpkg1")');
+            evalc('tbxmanager("disable", "testpkg1")');
 
             f = fullfile(testCase.TempDir, "state", "enabled.json");
             data = jsondecode(fileread(f));
@@ -246,39 +246,39 @@ classdef TestInstallWorkflow < matlab.unittest.TestCase
                 testCase.verifyFalse(ismember('testpkg1', names));
             end
 
-            tbxmanager("enable", "testpkg1");
+            evalc('tbxmanager("enable", "testpkg1")');
             data2 = jsondecode(fileread(f));
             names2 = fieldnames(data2.packages);
             testCase.verifyTrue(ismember('testpkg1', names2));
         end
 
         function testRestorePathAfterDisable(testCase)
-            tbxmanager("install", "testpkg1");
-            tbxmanager("enable", "testpkg1");
-            tbxmanager("restorepath");
+            evalc('tbxmanager("install", "testpkg1")');
+            evalc('tbxmanager("enable", "testpkg1")');
+            evalc('tbxmanager("restorepath")');
             testCase.verifyTrue(true);
         end
 
         % --- Update ---
 
         function testUpdatePackage(testCase)
-            tbxmanager("install", "testpkg1@==1.0.0");
-            tbxmanager("update", "testpkg1");
+            evalc('tbxmanager("install", "testpkg1@==1.0.0")');
+            evalc('tbxmanager("update", "testpkg1")');
             testCase.verifyTrue(true);
         end
 
         % --- Uninstall ---
 
         function testUninstallPackage(testCase)
-            tbxmanager("install", "testpkg1");
-            tbxmanager("uninstall", "testpkg1");
+            evalc('tbxmanager("install", "testpkg1")');
+            evalc('tbxmanager("uninstall", "testpkg1")');
             pkgDir = fullfile(testCase.TempDir, "packages", "testpkg1");
             testCase.verifyFalse(isfolder(pkgDir), 'Package should be removed');
         end
 
         function testUninstallWithDeps(testCase)
-            tbxmanager("install", "testpkg2");
-            tbxmanager("uninstall", "testpkg1");
+            evalc('tbxmanager("install", "testpkg2")');
+            evalc('tbxmanager("uninstall", "testpkg1")');
             testCase.verifyTrue(true);
         end
 
