@@ -10,6 +10,7 @@ on:
 
 jobs:
   lint:
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -34,6 +35,7 @@ jobs:
           uv run --group dev check-jsonschema --schemafile scripts/schemas/lockfile.schema.json tests/fixtures/valid_lockfile.json
 
   matlab:
+    if: "!startsWith(github.event.head_commit.message, 'bump:')"
     strategy:
       fail-fast: false
       matrix:
