@@ -8,7 +8,14 @@ With the publish action, you only maintain `tbxmanager.json` in your repo — th
 
 ## Package Metadata
 
-Create a `tbxmanager.json` in your repository root:
+Run [`tbxmanager init`](getting-started.md) in your project directory to generate the metadata file, then edit it:
+
+```matlab
+>> tbxmanager init
+Created tbxmanager.json
+```
+
+The generated `tbxmanager.json` looks like this (customize the fields for your package):
 
 ```json
 {
@@ -29,7 +36,7 @@ Create a `tbxmanager.json` in your repository root:
 ```
 
 !!! tip
-    Run `tbxmanager init` in your project directory to generate a template.
+    You can also create `tbxmanager.json` manually if you don't have tbxmanager installed yet.
 
 ### Fields
 

@@ -1,10 +1,18 @@
 # Quick Start for Package Authors
 
-Publish your MATLAB toolbox to tbxmanager in 3 steps.
+Publish your MATLAB toolbox to [tbxmanager](https://tbxmanager.com) in 3 steps. If you don't have tbxmanager yet, see [Getting Started](getting-started.md).
 
 ## Step 1: Add `tbxmanager.json`
 
-Create a `tbxmanager.json` file in your repository root:
+Run `tbxmanager init` in your project directory to generate the metadata file:
+
+```matlab
+>> cd my-toolbox
+>> tbxmanager init
+Created tbxmanager.json
+```
+
+Then edit the generated `tbxmanager.json` to match your package:
 
 ```json
 {
@@ -18,7 +26,7 @@ Create a `tbxmanager.json` file in your repository root:
 ```
 
 !!! tip
-    Run `tbxmanager init` in your project directory to generate this automatically.
+    You can also create `tbxmanager.json` manually if you don't have tbxmanager installed yet.
 
 Set `platforms` to `"all"` for pure MATLAB packages. If you distribute compiled MEX files, use platform-specific keys (`win64`, `maci64`, `maca64`, `glnxa64`) instead.
 
