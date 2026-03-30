@@ -38,8 +38,7 @@ tbxmanager info mpt             % Package details
 - **Lockfiles** — `tbxmanager lock` + `tbxmanager sync` for reproducible environments
 - **SHA256 verification** — every download verified for integrity
 - **Cross-platform** — Windows, macOS (Intel & Apple Silicon), Linux
-- **Community registry** — open package submissions via pull request
-- **Automated publishing** — tag a release, and the [publish action](https://github.com/MarekWadinger/tbxmanager-publish) handles the rest
+- **Community registry** — [submit packages](https://github.com/MarekWadinger/tbxmanager-registry/issues/new?template=submit-package.yml) by filling in a form
 
 ## Commands
 
@@ -64,8 +63,8 @@ tbxmanager info mpt             % Package details
 ## Publish Your Package
 
 1. Add `tbxmanager.json` to your repo (or run `tbxmanager init`)
-2. Copy the [publish workflow](https://github.com/MarekWadinger/tbxmanager-publish/blob/main/example-workflow.yml) to `.github/workflows/`
-3. Tag a release — the action builds archives, computes SHA256, and opens a PR to the registry
+1. Create a GitHub Release with a zip archive of your package
+1. [Submit via the registry issue form](https://github.com/MarekWadinger/tbxmanager-registry/issues/new?template=submit-package.yml) — a bot handles SHA256, validation, and the PR
 
 See the [Quick Start for Authors](https://tbxmanager.com/quick-start-authors) for the full guide.
 
@@ -84,7 +83,7 @@ Full documentation at [tbxmanager.com](https://tbxmanager.com):
 
 ### Packages
 
-Publish packages using the [tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish) GitHub Action, or submit manually to the [tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry) via pull request.
+[Submit packages](https://github.com/MarekWadinger/tbxmanager-registry/issues/new?template=submit-package.yml) via the registry issue form. Registry collaborators can also use the [tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish) action for automation.
 
 ### Client
 
