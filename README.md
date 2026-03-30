@@ -39,7 +39,7 @@ tbxmanager info mpt             % Package details
 - **SHA256 verification** — every download verified for integrity
 - **Cross-platform** — Windows, macOS (Intel & Apple Silicon), Linux
 - **Community registry** — open package submissions via pull request
-- **Automated publishing** — tag a release, and the [publish action](publish-action/) handles the rest
+- **Automated publishing** — tag a release, and the [publish action](https://github.com/MarekWadinger/tbxmanager-publish) handles the rest
 
 ## Commands
 
@@ -64,7 +64,7 @@ tbxmanager info mpt             % Package details
 ## Publish Your Package
 
 1. Add `tbxmanager.json` to your repo (or run `tbxmanager init`)
-2. Copy the [publish workflow](publish-action/example-workflow.yml) to `.github/workflows/`
+2. Copy the [publish workflow](https://github.com/MarekWadinger/tbxmanager-publish/blob/main/example-workflow.yml) to `.github/workflows/`
 3. Tag a release — the action builds archives, computes SHA256, and opens a PR to the registry
 
 See the [Quick Start for Authors](https://tbxmanager.com/quick-start-authors) for the full guide.
@@ -84,7 +84,7 @@ Full documentation at [tbxmanager.com](https://tbxmanager.com):
 
 ### Packages
 
-Publish packages using the [tbxmanager-publish](publish-action/) GitHub Action, or submit manually to the [tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry) via pull request.
+Publish packages using the [tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish) GitHub Action, or submit manually to the [tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry) via pull request.
 
 ### Client
 
