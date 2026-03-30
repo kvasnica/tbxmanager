@@ -1,3 +1,14 @@
+## v2.2.0 (2026-03-30)
+
+### Feat
+
+- **tests**: add pytest-style test runner and matlab-cli target
+
+### Fix
+
+- replace kvasnica org refs with MarekWadinger
+- **client**: handle null SHA256 from migrated packages
+
 ## v2.1.0 (2026-03-29)
 
 ### Feat
