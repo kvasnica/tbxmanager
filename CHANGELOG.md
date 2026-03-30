@@ -1,3 +1,9 @@
+## v2.2.1 (2026-03-30)
+
+### Refactor
+
+- remove legacy publish-action, link to standalone repo
+
 ## v2.2.0 (2026-03-30)
 
 ### Feat
