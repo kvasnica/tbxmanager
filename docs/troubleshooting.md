@@ -57,7 +57,7 @@ tbxmanager source list         % check configured sources
 If the source list is empty, add the default:
 
 ```matlab
-tbxmanager source add https://kvasnica.github.io/tbxmanager-registry/index.json
+tbxmanager source add https://marekwadinger.github.io/tbxmanager-registry/index.json
 ```
 
 ### "No version satisfies constraint for platform"
@@ -104,6 +104,6 @@ tbxmanager install my-toolbox@==1.0.0
 
 ## Getting Help
 
-- **tbxmanager client issues:** [kvasnica/tbxmanager](https://github.com/kvasnica/tbxmanager/issues)
-- **Registry/package issues:** [kvasnica/tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry/issues)
-- **Publish action issues:** [kvasnica/tbxmanager-publish](https://github.com/kvasnica/tbxmanager-publish/issues)
+- **tbxmanager client issues:** [MarekWadinger/tbxmanager](https://github.com/MarekWadinger/tbxmanager/issues)
+- **Registry/package issues:** [MarekWadinger/tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry/issues)
+- **Publish action issues:** [MarekWadinger/tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish/issues)

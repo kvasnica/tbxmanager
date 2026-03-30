@@ -84,7 +84,7 @@ Full documentation at [tbxmanager.com](https://tbxmanager.com):
 
 ### Packages
 
-Publish packages using the [tbxmanager-publish](publish-action/) GitHub Action, or submit manually to the [tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry) via pull request.
+Publish packages using the [tbxmanager-publish](publish-action/) GitHub Action, or submit manually to the [tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry) via pull request.
 
 ### Client
 

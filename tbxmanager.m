@@ -98,7 +98,7 @@ function tbx_setup()
     % Initialize sources.json if missing
     sourcesFile = fullfile(baseDir, "state", "sources.json");
     if ~isfile(sourcesFile)
-        s.sources = {"https://kvasnica.github.io/tbxmanager-registry/index.json"};
+        s.sources = {"https://marekwadinger.github.io/tbxmanager-registry/index.json"};
         tbx_writeJson(sourcesFile, s);
     end
     % Initialize enabled.json if missing
@@ -467,12 +467,12 @@ function sources = tbx_getSources()
 %TBX_GETSOURCES  Return list of index source URLs.
     sourcesFile = fullfile(tbx_baseDir(), "state", "sources.json");
     if ~isfile(sourcesFile)
-        sources = "https://kvasnica.github.io/tbxmanager-registry/index.json";
+        sources = "https://marekwadinger.github.io/tbxmanager-registry/index.json";
         return;
     end
     data = tbx_readJson(sourcesFile);
     if ~isfield(data, "sources")
-        sources = "https://kvasnica.github.io/tbxmanager-registry/index.json";
+        sources = "https://marekwadinger.github.io/tbxmanager-registry/index.json";
         return;
     end
     raw = data.sources;
@@ -1273,7 +1273,7 @@ function tbx_installSinglePackage(pkg, cacheDir)
     end
 
     % Verify SHA256
-    if pkg.sha256 ~= "" && pkg.sha256 ~= "none"
+    if ~isempty(pkg.sha256) && strlength(string(pkg.sha256)) > 0 && string(pkg.sha256) ~= "none"
         tbx_printf("  Verifying SHA256...\n");
         actualHash = tbx_sha256(cacheFile);
         if actualHash ~= pkg.sha256

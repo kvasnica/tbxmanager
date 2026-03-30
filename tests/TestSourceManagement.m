@@ -20,7 +20,7 @@ classdef TestSourceManagement < matlab.unittest.TestCase
     methods (Test)
 
         function testDefaultSourceExists(testCase)
-            tbxmanager("help");
+            evalc('tbxmanager("help")');
             f = fullfile(testCase.TempDir, "state", "sources.json");
             data = jsondecode(fileread(f));
             sources = string(data.sources);
@@ -28,8 +28,8 @@ classdef TestSourceManagement < matlab.unittest.TestCase
         end
 
         function testAddSource(testCase)
-            tbxmanager("help");
-            tbxmanager("source", "add", "https://example.com/custom/index.json");
+            evalc('tbxmanager("help")');
+            evalc('tbxmanager("source", "add", "https://example.com/custom/index.json")');
             f = fullfile(testCase.TempDir, "state", "sources.json");
             data = jsondecode(fileread(f));
             sources = string(data.sources);
@@ -37,9 +37,9 @@ classdef TestSourceManagement < matlab.unittest.TestCase
         end
 
         function testRemoveSource(testCase)
-            tbxmanager("help");
-            tbxmanager("source", "add", "https://example.com/temp.json");
-            tbxmanager("source", "remove", "https://example.com/temp.json");
+            evalc('tbxmanager("help")');
+            evalc('tbxmanager("source", "add", "https://example.com/temp.json")');
+            evalc('tbxmanager("source", "remove", "https://example.com/temp.json")');
             f = fullfile(testCase.TempDir, "state", "sources.json");
             data = jsondecode(fileread(f));
             sources = string(data.sources);
@@ -47,9 +47,9 @@ classdef TestSourceManagement < matlab.unittest.TestCase
         end
 
         function testDuplicateSourceNotAdded(testCase)
-            tbxmanager("help");
-            tbxmanager("source", "add", "https://example.com/dup.json");
-            tbxmanager("source", "add", "https://example.com/dup.json");
+            evalc('tbxmanager("help")');
+            evalc('tbxmanager("source", "add", "https://example.com/dup.json")');
+            evalc('tbxmanager("source", "add", "https://example.com/dup.json")');
             f = fullfile(testCase.TempDir, "state", "sources.json");
             data = jsondecode(fileread(f));
             sources = string(data.sources);

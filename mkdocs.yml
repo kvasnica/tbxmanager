@@ -1,8 +1,8 @@
 site_name: tbxmanager
 site_url: https://tbxmanager.com
 site_description: The MATLAB Package Manager
-repo_url: https://github.com/kvasnica/tbxmanager
-repo_name: kvasnica/tbxmanager
+repo_url: https://github.com/MarekWadinger/tbxmanager
+repo_name: MarekWadinger/tbxmanager
 
 theme:
   name: material
@@ -58,4 +58,4 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/kvasnica/tbxmanager
+      link: https://github.com/MarekWadinger/tbxmanager

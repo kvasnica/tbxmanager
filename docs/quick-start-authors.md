@@ -1,10 +1,18 @@
 # Quick Start for Package Authors
 
-Publish your MATLAB toolbox to tbxmanager in 3 steps.
+Publish your MATLAB toolbox to [tbxmanager](https://tbxmanager.com) in 3 steps. If you don't have tbxmanager yet, see [Getting Started](getting-started.md).
 
 ## Step 1: Add `tbxmanager.json`
 
-Create a `tbxmanager.json` file in your repository root:
+Run `tbxmanager init` in your project directory to generate the metadata file:
+
+```matlab
+>> cd my-toolbox
+>> tbxmanager init
+Created tbxmanager.json
+```
+
+Then edit the generated `tbxmanager.json` to match your package:
 
 ```json
 {
@@ -18,7 +26,7 @@ Create a `tbxmanager.json` file in your repository root:
 ```
 
 !!! tip
-    Run `tbxmanager init` in your project directory to generate this automatically.
+    You can also create `tbxmanager.json` manually if you don't have tbxmanager installed yet.
 
 Set `platforms` to `"all"` for pure MATLAB packages. If you distribute compiled MEX files, use platform-specific keys (`win64`, `maci64`, `maca64`, `glnxa64`) instead.
 
@@ -42,12 +50,12 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: kvasnica/tbxmanager-publish@v1
+      - uses: MarekWadinger/tbxmanager-publish@v1
         with:
           registry-token: ${{ secrets.TBXMANAGER_REGISTRY_TOKEN }}
 ```
 
-Then add a `TBXMANAGER_REGISTRY_TOKEN` secret to your repo (Settings > Secrets). This should be a GitHub Personal Access Token with permission to create PRs on the [tbxmanager-registry](https://github.com/kvasnica/tbxmanager-registry).
+Then add a `TBXMANAGER_REGISTRY_TOKEN` secret to your repo (Settings > Secrets). This should be a GitHub Personal Access Token with permission to create PRs on the [tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry).
 
 ## Step 3: Create a Release
 
@@ -83,7 +91,7 @@ git tag v1.0.0 && git push --tags
     - Uploads archive to release assets
     - Computes SHA256 hash
     - Converts tbxmanager.json to registry format
-    - Opens PR to kvasnica/tbxmanager-registry
+    - Opens PR to MarekWadinger/tbxmanager-registry
          |
          v
   CI validates (JSON, URLs, SHA256)
