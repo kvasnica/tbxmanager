@@ -1,0 +1,2 @@
+ignore:
+  - "tests/run_tests.m"
