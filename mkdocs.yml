@@ -36,6 +36,7 @@ nav:
   - Commands: commands.md
   - For Package Authors:
     - Quick Start: quick-start-authors.md
+    - Case Study: casestudy.md
     - Creating Packages: creating-packages.md
   - Contributing: contributing.md
   - Troubleshooting: troubleshooting.md
