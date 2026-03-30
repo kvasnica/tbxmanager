@@ -83,7 +83,7 @@ Full documentation at [tbxmanager.com](https://tbxmanager.com):
 
 ### Packages
 
-[Submit packages](https://github.com/MarekWadinger/tbxmanager-registry/issues/new?template=submit-package.yml) via the registry issue form. Registry collaborators can also use the [tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish) action for automation.
+[Submit packages](https://github.com/MarekWadinger/tbxmanager-registry/issues/new?template=submit-package.yml) via the registry issue form, or run `tbxmanager publish` from your package directory.
 
 ### Client
 

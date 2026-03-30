@@ -100,9 +100,16 @@ If your package includes compiled MEX files, create separate archives per platfo
 
 Attach all of them to your GitHub Release and select the appropriate platform in the submission form.
 
-## For Registry Collaborators: Automated Publishing
+## Even Faster: `tbxmanager publish`
 
-If you have write access to the registry, you can fully automate publishing using the [tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish) GitHub Action. See the [Case Study](casestudy.md) for a walkthrough.
+If you have tbxmanager installed, you can do everything in one command:
+
+```matlab
+>> cd my-toolbox
+>> tbxmanager publish
+```
+
+This builds the archive, creates the GitHub release, uploads it, and submits to the registry — all automatically. Requires a GitHub token with `public_repo` scope (prompted on first use).
 
 ## Next Steps
 
