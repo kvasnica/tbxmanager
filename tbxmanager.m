@@ -65,6 +65,8 @@ function varargout = tbxmanager(command, varargin)
             main_require(args);
         case "cache"
             main_cache(args);
+        case "publish"
+            main_publish(args);
         case "help"
             main_help(args);
         case "internal__"
@@ -1954,7 +1956,7 @@ function main_init(~)
     tbx_writeJson(projectFile, project);
     tbx_printf("Created %s\n", projectFile);
     tbx_printf("Fill in 'description' and 'platforms' URLs, then run 'tbxmanager lock'.\n");
-    tbx_printf("To publish, add the tbxmanager-publish workflow to .github/workflows/.\n");
+    tbx_printf("To publish, run 'tbxmanager publish' from this directory.\n");
 end
 
 %% ========================================================================
@@ -2227,6 +2229,235 @@ end
 %  Command: help
 %  ========================================================================
 
+function main_publish(~)
+%MAIN_PUBLISH  Publish package to the tbxmanager registry.
+%   Reads tbxmanager.json, builds an archive, creates a GitHub release,
+%   uploads the archive, and submits a registry issue.
+    REGISTRY_REPO = "MarekWadinger/tbxmanager-registry";
+
+    % 1. Read and validate tbxmanager.json
+    projectFile = fullfile(pwd, "tbxmanager.json");
+    if ~isfile(projectFile)
+        tbx_printError("No tbxmanager.json found. Run 'tbxmanager init' first.");
+        return;
+    end
+    pkg = tbx_readJson(projectFile);
+    for f = ["name", "version", "description", "platforms"]
+        if ~isfield(pkg, f)
+            tbx_printError("tbxmanager.json missing required field: %s", f);
+            return;
+        end
+    end
+    name = string(pkg.name);
+    ver = string(pkg.version);
+    tbx_printf("Publishing %s v%s\n\n", name, ver);
+
+    % 2. Determine platform
+    platNames = string(fieldnames(pkg.platforms));
+    if isscalar(platNames)
+        platform = platNames(1);
+    else
+        tbx_printf("Platforms: %s\n", strjoin(platNames, ", "));
+        tbx_printError("Multi-platform publish not yet supported. Publish each platform separately.");
+        return;
+    end
+
+    % 3. Get GitHub token
+    token = tbx_getGithubToken();
+    if token == ""
+        return;
+    end
+
+    % 4. Parse repository URL from homepage
+    if isfield(pkg, "homepage")
+        repoUrl = string(pkg.homepage);
+    else
+        repoUrl = string(input("GitHub repository URL: ", "s"));
+    end
+    parts = split(replace(repoUrl, "https://github.com/", ""), "/");
+    if numel(parts) < 2
+        tbx_printError("Invalid GitHub URL: %s", repoUrl);
+        return;
+    end
+    owner = parts(1);
+    repo = parts(2);
+
+    % 5. Build archive
+    excludes = [".git", ".github", "tests", "docs", "tbxmanager.json"];
+    if isfield(pkg, "publish") && isfield(pkg.publish, "exclude")
+        excludes = string(pkg.publish.exclude);
+    end
+    archiveName = name + "-" + platform + ".zip";
+    archivePath = fullfile(tempdir, archiveName);
+    tbx_printf("Building archive...");
+    tbx_buildArchive(archivePath, excludes);
+    d = dir(archivePath);
+    tbx_printf(" done (%s, %d KB)\n", archiveName, round(d.bytes / 1024));
+
+    % 6. Compute SHA256
+    hash = tbx_sha256(archivePath);
+    tbx_printf("SHA256: %s\n", hash);
+
+    % 7. Create or find GitHub release
+    tag = "v" + ver;
+    apiBase = "https://api.github.com/repos/" + owner + "/" + repo;
+    tbx_printf("Creating release %s...", tag);
+    try
+        releaseBody.tag_name = char(tag);
+        releaseBody.name = char(tag);
+        releaseBody.draft = false;
+        releaseBody.prerelease = false;
+        release = tbx_githubApi("POST", apiBase + "/releases", token, releaseBody);
+        tbx_printf(" done\n");
+    catch ME
+        if contains(ME.message, "already_exists") || contains(ME.message, "422")
+            tbx_printf(" already exists, reusing\n");
+            release = tbx_githubApi("GET", apiBase + "/releases/tags/" + tag, token);
+        else
+            tbx_printError("Failed to create release: %s", ME.message);
+            return;
+        end
+    end
+
+    % 8. Upload archive to release
+    uploadUrl = string(release.upload_url);
+    uploadUrl = replace(uploadUrl, "{?name,label}", "");
+    uploadUrl = uploadUrl + "?name=" + archiveName;
+    tbx_printf("Uploading archive...");
+    try
+        fid = fopen(archivePath, 'r');
+        cleanObj = onCleanup(@() fclose(fid));
+        data = fread(fid, '*uint8')';
+        opts = weboptions( ...
+            'MediaType', 'application/zip', ...
+            'HeaderFields', {'Authorization', "token " + token; ...
+                             'Content-Type', 'application/zip'}, ...
+            'Timeout', 300);
+        webwrite(uploadUrl, data, opts);
+        tbx_printf(" done\n");
+    catch ME
+        if contains(ME.message, "already_exists")
+            tbx_printf(" already uploaded\n");
+        else
+            tbx_printError("Failed to upload: %s", ME.message);
+            return;
+        end
+    end
+
+    % 9. Submit to registry via issue
+    assetUrl = "https://github.com/" + owner + "/" + repo + ...
+               "/releases/download/" + tag + "/" + archiveName;
+    if platform == "all"
+        platformLabel = "all (pure MATLAB, no MEX files)";
+    else
+        platformLabel = platform;
+    end
+    issueBody = sprintf("### Repository URL\n\n%s\n\n### Release tag\n\n%s\n\n### Platform\n\n%s", ...
+        "https://github.com/" + owner + "/" + repo, tag, platformLabel);
+    issueData.title = char("Submit: " + name + "@" + ver);
+    issueData.body = char(issueBody);
+    issueData.labels = {'submit-package'};
+    tbx_printf("Submitting to registry...");
+    try
+        issue = tbx_githubApi("POST", ...
+            "https://api.github.com/repos/" + REGISTRY_REPO + "/issues", ...
+            token, issueData);
+        tbx_printf(" done\n\n");
+        tbx_printf("Submission created! A maintainer will review your package.\n");
+        tbx_printf("Track progress: %s\n", string(issue.html_url));
+    catch ME
+        tbx_printError("Failed to submit: %s", ME.message);
+    end
+
+    % Cleanup
+    delete(archivePath);
+end
+
+function token = tbx_getGithubToken()
+%TBX_GETGITHUBTOKEN  Get GitHub token from config or prompt user.
+    cfgFile = fullfile(tbx_baseDir(), "config.json");
+    cfg = tbx_config();
+    if isfield(cfg, "github_token") && strlength(string(cfg.github_token)) > 0
+        token = string(cfg.github_token);
+        return;
+    end
+    tbx_printf("GitHub token not configured.\n");
+    tbx_printf("Create a classic token with 'public_repo' scope at:\n");
+    tbx_printf("  https://github.com/settings/tokens/new?scopes=public_repo\n\n");
+    tokenStr = input("Enter token (or press Enter to cancel): ", "s");
+    if isempty(tokenStr)
+        token = "";
+        return;
+    end
+    token = string(tokenStr);
+    cfg.github_token = char(token);
+    tbx_writeJson(cfgFile, cfg);
+    tbx_printf("Token saved to config.\n\n");
+end
+
+function resp = tbx_githubApi(method, url, token, body)
+%TBX_GITHUBAPI  Make an authenticated GitHub API request.
+    arguments
+        method (1,1) string
+        url (1,1) string
+        token (1,1) string
+        body = []
+    end
+    opts = weboptions( ...
+        'HeaderFields', {'Authorization', "token " + token; ...
+                         'Accept', 'application/vnd.github+json'}, ...
+        'Timeout', 60, ...
+        'ContentType', 'json');
+    if method == "GET"
+        resp = webread(url, opts);
+    else
+        if isempty(body)
+            resp = webwrite(url, opts);
+        else
+            resp = webwrite(url, body, opts);
+        end
+    end
+end
+
+function tbx_buildArchive(archivePath, excludePatterns)
+%TBX_BUILDARCHIVE  Build a zip archive of the current directory.
+    arguments
+        archivePath (1,1) string
+        excludePatterns (1,:) string
+    end
+    allFiles = dir(fullfile(pwd, '**', '*'));
+    allFiles = allFiles(~[allFiles.isdir]);
+    baseDir = pwd;
+    keep = {};
+    for i = 1:numel(allFiles)
+        relPath = strrep(fullfile(allFiles(i).folder, allFiles(i).name), ...
+                         [baseDir filesep], '');
+        excluded = false;
+        for j = 1:numel(excludePatterns)
+            pat = excludePatterns(j);
+            if startsWith(relPath, pat) || startsWith(relPath, pat + filesep)
+                excluded = true;
+                break;
+            end
+            if contains(pat, "*")
+                % Glob pattern like "*.mat"
+                ext = extractAfter(pat, "*");
+                if endsWith(relPath, ext)
+                    excluded = true;
+                    break;
+                end
+            end
+        end
+        if ~excluded
+            keep{end+1} = fullfile(allFiles(i).folder, allFiles(i).name); %#ok<AGROW>
+        end
+    end
+    if isempty(keep)
+        error("TBXMANAGER:EmptyArchive", "No files to archive after applying exclusions.");
+    end
+    zip(archivePath, keep, baseDir);
+end
+
 function main_help(args)
 %MAIN_HELP  Display help text.
     if ~isempty(args)
@@ -2343,6 +2574,16 @@ function main_help(args)
             tbx_printf("  tbxmanager cache list    Show cached files\n");
             tbx_printf("  tbxmanager cache clean   Remove all cached files\n");
 
+        case "publish"
+            tbx_printf("tbxmanager publish - Publish package to the registry\n\n");
+            tbx_printf("Usage:\n");
+            tbx_printf("  tbxmanager publish\n\n");
+            tbx_printf("Reads tbxmanager.json from the current directory, builds a zip\n");
+            tbx_printf("archive, creates a GitHub release, uploads the archive, and\n");
+            tbx_printf("submits a package to the tbxmanager registry.\n\n");
+            tbx_printf("Requires a GitHub token with 'public_repo' scope.\n");
+            tbx_printf("The token is prompted on first use and saved to config.\n");
+
         otherwise
             tbx_printf("tbxmanager v2.0 - MATLAB Package Manager\n\n");
             tbx_printf("Usage: tbxmanager <command> [arguments]\n\n");
@@ -2355,6 +2596,7 @@ function main_help(args)
             tbx_printf("  info          Show package details\n");
             tbx_printf("\nProject commands:\n");
             tbx_printf("  init          Create tbxmanager.json template\n");
+            tbx_printf("  publish       Publish package to the registry\n");
             tbx_printf("  lock          Generate tbxmanager.lock from tbxmanager.json\n");
             tbx_printf("  sync          Install from tbxmanager.lock\n");
             tbx_printf("\nPath commands:\n");
@@ -2429,6 +2671,9 @@ function result = main_internal(args)
             result = true;
         case "toposort"
             result = tbx_toposort(jsondecode(funcArgs(1)));
+        case "buildArchive"
+            tbx_buildArchive(funcArgs(1), funcArgs(2:end));
+            result = true;
         otherwise
             error("TBXMANAGER:Internal", "Unknown internal function: %s", funcName);
     end
@@ -2520,6 +2765,12 @@ function tbx_migrateOld()
     selfDir = fileparts(selfPath);
     oldToolboxDir = fullfile(selfDir, "toolboxes");
     if ~isfolder(oldToolboxDir)
+        return;
+    end
+    % Skip if toolboxes dir is empty (no packages to migrate)
+    contents = dir(oldToolboxDir);
+    contents = contents(~ismember({contents.name}, {'.', '..'}));
+    if isempty(contents)
         return;
     end
 

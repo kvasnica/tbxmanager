@@ -106,4 +106,4 @@ tbxmanager install my-toolbox@==1.0.0
 
 - **tbxmanager client issues:** [MarekWadinger/tbxmanager](https://github.com/MarekWadinger/tbxmanager/issues)
 - **Registry/package issues:** [MarekWadinger/tbxmanager-registry](https://github.com/MarekWadinger/tbxmanager-registry/issues)
-- **Publish action issues:** [MarekWadinger/tbxmanager-publish](https://github.com/MarekWadinger/tbxmanager-publish/issues)
+- **Publishing issues:** run `tbxmanager help publish` or [submit via issue form](https://github.com/MarekWadinger/tbxmanager-registry/issues/new?template=submit-package.yml)

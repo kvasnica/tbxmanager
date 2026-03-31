@@ -31,3 +31,6 @@ __pycache__/
 *.pyc
 .venv/
 *.egg-info/
+
+# Environment variables
+.env

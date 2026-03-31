@@ -67,7 +67,7 @@
     },
     "publish": {
       "type": "object",
-      "description": "Publishing configuration (used by tbxmanager-publish action, ignored by MATLAB client)",
+      "description": "Publishing configuration (used by tbxmanager publish command)",
       "properties": {
         "exclude": {
           "type": "array",

@@ -91,113 +91,80 @@ Check which features your code uses:
 
 Pick the highest minimum from features you use. For RLS_identification, `arguments` blocks require **R2019b**.
 
-## Step 2: Add the Publish Workflow
-
-Create `.github/workflows/tbxmanager-publish.yml`:
-
-```yaml
-name: Publish to tbxmanager
-
-on:
-  release:
-    types: [published]
-
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: MarekWadinger/tbxmanager-publish@v1
-        with:
-          registry-token: ${{ secrets.TBXMANAGER_REGISTRY_TOKEN }}
-```
-
-That's the entire workflow -- 15 lines. It triggers when you create a GitHub Release.
-
-## Step 3: Create a Registry Token
-
-The publish action needs permission to open PRs on the tbxmanager registry. You create this once and reuse it across all your packages.
-
-1. Go to [GitHub Settings > Developer settings > Personal access tokens > Fine-grained tokens](https://github.com/settings/personal-access-tokens/new)
-2. Create a new token with:
-    - **Token name:** `tbxmanager-publish`
-    - **Expiration:** 1 year (or your preference)
-    - **Repository access:** Select `MarekWadinger/tbxmanager-registry`
-    - **Permissions:** Contents (Read and write), Pull requests (Read and write)
-3. Copy the token
-4. Go to your package repo: **Settings > Secrets and variables > Actions**
-5. Click **New repository secret**
-    - **Name:** `TBXMANAGER_REGISTRY_TOKEN`
-    - **Value:** paste the token
-
-## Step 4: Commit and Push
+## Step 2: Commit and Push
 
 ```bash
 cd RLS_identification
 
-git add tbxmanager.json .github/workflows/tbxmanager-publish.yml
-git commit -m "feat: add tbxmanager package publishing"
+git add tbxmanager.json
+git commit -m "feat: add tbxmanager package metadata"
 git push
 ```
 
-## Step 5: Create a Release
+That's the only file you need to add to your repo.
 
-### Option A: GitHub CLI
+## Step 3: Create a GitHub Release
 
-```bash
-git tag v1.0.0
-git push --tags
-gh release create v1.0.0 --title "v1.0.0" --notes "Initial tbxmanager release"
-```
+1. Zip your package (exclude `.git`, tests, data files you don't want distributed):
 
-### Option B: GitHub Web UI
+    ```bash
+    zip -r rls-identification.zip functions/ main.m LICENSE README.md
+    ```
 
-1. Go to your repo on GitHub
-2. Click **Releases** > **Create a new release**
-3. Choose tag: type `v1.0.0`, select "Create new tag on publish"
-4. Title: `v1.0.0`
-5. Click **Publish release**
+1. Tag and push:
+
+    ```bash
+    git tag v1.0.0
+    git push --tags
+    ```
+
+1. Go to your repo on GitHub, click **Releases** > **Create a new release**
+1. Select the `v1.0.0` tag, add a title
+1. **Attach `rls-identification.zip`** as a release asset
+1. Click **Publish release**
+
+## Step 4: Submit to the Registry
+
+1. Go to [tbxmanager-registry > Issues > New Issue](https://github.com/MarekWadinger/tbxmanager-registry/issues/new/choose)
+1. Click **"Submit Package"**
+1. Fill in:
+    - **Repository URL:** `https://github.com/MarekWadinger/RLS_identification`
+    - **Release tag:** `v1.0.0`
+    - **Platform:** `all (pure MATLAB, no MEX files)`
+1. Click **Submit new issue**
 
 ## What Happens Automatically
 
-After you publish the release, the GitHub Action runs and does everything else:
+After you submit the issue, a bot takes over:
 
 ```text
-You: Create GitHub Release v1.0.0
+You: Fill in the submission form
          |
          v
-Action: Reads tbxmanager.json
+Bot: Fetches tbxmanager.json from your repo at v1.0.0
   name = rls-identification
   version = 1.0.0
          |
          v
-Action: Builds rls-identification-all.zip
-  Includes: functions/, main.m, LICENSE, README.md
-  Excludes: .git, .github, *.mat, *.slx
+Bot: Downloads rls-identification.zip from your release
          |
          v
-Action: Uploads zip to release assets
-  URL: github.com/MarekWadinger/RLS_identification/releases/download/v1.0.0/rls-identification-all.zip
-         |
-         v
-Action: Computes SHA256 hash
+Bot: Computes SHA256 hash
   sha256 = a1b2c3d4...
          |
          v
-Action: Converts tbxmanager.json to registry format
+Bot: Converts tbxmanager.json to registry format
   Creates packages/rls-identification/package.json
          |
          v
-Action: Opens PR to MarekWadinger/tbxmanager-registry
-  Title: "New package: rls-identification@1.0.0"
+Bot: Opens PR to MarekWadinger/tbxmanager-registry
+  Title: "Add rls-identification@1.0.0"
          |
          v
-Registry CI: Validates JSON schema, checks URL, verifies SHA256
+Registry CI: Validates JSON, checks URL
          |
          v
-Maintainer merges PR (auto-merge for updates after first approval)
+Maintainer merges PR
          |
          v
 Package is live!
@@ -229,16 +196,9 @@ rls-identification 1.0.0
 When you improve your package:
 
 1. Update `version` in `tbxmanager.json` (e.g., `1.0.0` -> `1.1.0`)
-2. Commit and push your changes
-3. Create a new release:
-
-```bash
-git tag v1.1.0
-git push --tags
-gh release create v1.1.0 --title "v1.1.0" --notes "Added feature X"
-```
-
-The action opens a new PR to the registry. Since the package already exists, it gets auto-merged (no manual review needed).
+1. Commit and push your changes
+1. Create a new release with the updated zip
+1. Submit another issue on the registry (same form, new tag)
 
 Users update with:
 
@@ -248,13 +208,10 @@ Users update with:
 
 ## Repository Structure (After)
 
-After adding tbxmanager support, only 2 files were added:
+After adding tbxmanager support, only 1 file was added:
 
 ```text
 RLS_identification/
-  .github/
-    workflows/
-      tbxmanager-publish.yml   <-- NEW (15 lines)
   functions/
     preprocessData.m
     recursiveLeastSquares.m
@@ -268,7 +225,7 @@ RLS_identification/
   tbxmanager.json              <-- NEW (14 lines)
 ```
 
-No changes to any existing files. No build system. No CI configuration beyond the 15-line workflow.
+No changes to any existing files. No build system. No CI configuration needed.
 
 ## Common Questions
 
@@ -308,7 +265,7 @@ dist/
   my-package-glnxa64.zip
 ```
 
-The action uploads each platform archive separately.
+Attach all archives to your GitHub Release. Select the corresponding platform in the submission form.
 
 ### I want to deprecate my package
 
@@ -336,18 +293,16 @@ Create a new fine-grained token (Step 3) and update the `TBXMANAGER_REGISTRY_TOK
 
 ### The action failed
 
-Check the Actions tab in your repo. Common issues:
+Check the bot's comment on your submission issue. Common issues:
 
-- **`tbxmanager.json not found`** -- file must be in the repo root
-- **`Archive not found`** -- for platform-specific packages, pre-build archives in `dist/`
-- **`403 on PR creation`** -- token lacks write permissions to the registry
-- **`SHA256 mismatch`** -- re-run the release (archive was modified between upload and hash)
+- **`tbxmanager.json not found`** -- file must be in the repo root at the tagged commit
+- **`No release found`** -- create a GitHub Release for the tag first
+- **`No archive attached`** -- attach a `.zip` file to your GitHub Release
 
 ## Summary
 
 | What | Where | How often |
 | ---- | ----- | --------- |
 | `tbxmanager.json` | Your repo root | Once (update `version` per release) |
-| Publish workflow | `.github/workflows/` | Once (copy and forget) |
-| Registry token | Repo secret | Once (renew when expired) |
-| Create release | GitHub UI or CLI | Each time you publish |
+| Create release + zip | GitHub Releases | Each time you publish |
+| Submit issue | tbxmanager-registry | Each time you publish |
