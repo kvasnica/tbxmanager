@@ -2671,6 +2671,9 @@ function result = main_internal(args)
             result = true;
         case "toposort"
             result = tbx_toposort(jsondecode(funcArgs(1)));
+        case "buildArchive"
+            tbx_buildArchive(funcArgs(1), funcArgs(2:end));
+            result = true;
         otherwise
             error("TBXMANAGER:Internal", "Unknown internal function: %s", funcName);
     end
@@ -2762,6 +2765,12 @@ function tbx_migrateOld()
     selfDir = fileparts(selfPath);
     oldToolboxDir = fullfile(selfDir, "toolboxes");
     if ~isfolder(oldToolboxDir)
+        return;
+    end
+    % Skip if toolboxes dir is empty (no packages to migrate)
+    contents = dir(oldToolboxDir);
+    contents = contents(~ismember({contents.name}, {'.', '..'}));
+    if isempty(contents)
         return;
     end
 
