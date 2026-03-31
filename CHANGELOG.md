@@ -1,3 +1,9 @@
+## v2.3.0 (2026-03-31)
+
+### Feat
+
+- **client**: add `tbxmanager publish` command
+
 ## v2.2.1 (2026-03-30)
 
 ### Refactor

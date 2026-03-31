@@ -1,6 +1,6 @@
 [project]
 name = "tbxmanager"
-version = "2.2.1"
+version = "2.3.0"
 description = "Infrastructure scripts for tbxmanager — MATLAB package manager"
 requires-python = ">=3.14"
 dependencies = []
