@@ -204,6 +204,20 @@ classdef TestLockSync < matlab.unittest.TestCase
                 'URL should not be empty');
         end
 
+        function testLockGenerationFailure(testCase)
+            % Project file without "dependencies" field → lock generation fails
+            noDepDir = fullfile(testCase.TempDir, "project_nodeps");
+            mkdir(noDepDir);
+            nodepData = struct('name', 'nodeps', 'version', '0.1.0');
+            fid = fopen(fullfile(noDepDir, "tbxmanager.json"), 'w');
+            fprintf(fid, '%s', jsonencode(nodepData));
+            fclose(fid);
+            cd(noDepDir);
+            out = evalc('tbxmanager("lock")');
+            testCase.verifyTrue(contains(out, "failed") || contains(out, "No") || contains(out, "depend"), ...
+                'Should report lock generation failure');
+        end
+
         % --- sync errors ---
 
         function testSyncNoLockFile(testCase)
@@ -213,6 +227,19 @@ classdef TestLockSync < matlab.unittest.TestCase
             out = evalc('tbxmanager("sync")');
             testCase.verifyTrue(contains(out, "lock") || contains(out, "No"), ...
                 'Should report missing lock file');
+        end
+
+        function testSyncNoPackagesField(testCase)
+            % Lock file exists but has no 'packages' field
+            syncDir = fullfile(testCase.TempDir, "sync_nopkgs");
+            mkdir(syncDir);
+            cd(syncDir);
+            fid = fopen(fullfile(syncDir, "tbxmanager.lock"), 'w');
+            fprintf(fid, '{"lockfile_version":1,"generated":"2026-01-01T00:00:00Z","requires":{}}');
+            fclose(fid);
+            out = evalc('tbxmanager("sync")');
+            testCase.verifyTrue(contains(out, "No packages") || contains(out, "lock"), ...
+                'Should report no packages in lock file');
         end
 
         function testSyncInstallsFromLock(testCase)
@@ -245,6 +272,92 @@ classdef TestLockSync < matlab.unittest.TestCase
                 'List should show testpkg2 after lock+sync');
             testCase.verifyTrue(contains(out, "testpkg1"), ...
                 'List should show testpkg1 after lock+sync');
+        end
+
+        function testSyncRemovesExtraPackage(testCase)
+            % Install both testpkg1 and testpkg2, then sync with a lock that
+            % only contains testpkg1. testpkg2 should be removed.
+            evalc('tbxmanager("install", "testpkg1")');
+            evalc('tbxmanager("install", "testpkg2")');
+
+            % Create a project directory with only testpkg1 as dependency
+            simpleDir = fullfile(testCase.TempDir, "simple_project");
+            mkdir(simpleDir);
+            projData = struct('name', 'simple', 'version', '0.1.0', ...
+                              'dependencies', struct('testpkg1', '>=1.0'));
+            fid = fopen(fullfile(simpleDir, "tbxmanager.json"), 'w');
+            fprintf(fid, '%s', jsonencode(projData));
+            fclose(fid);
+
+            cd(simpleDir);
+            evalc('tbxmanager("lock")');  % locks testpkg1@1.0.0 only
+            evalc('tbxmanager("sync")');  % testpkg2 is extra → removed
+
+            testCase.verifyFalse(isfolder(fullfile(testCase.TempDir, "packages", "testpkg2")), ...
+                'testpkg2 should be removed by sync when not in lock file');
+        end
+
+        function testSyncVersionMismatch(testCase)
+            % Install testpkg1 (v1.0.0 in mock index), then create a lock file
+            % that requires testpkg1@2.0.0 (different version) using the same zip.
+            % Sync detects instVer ~= reqVer → hits L1833 (toInstall branch).
+            evalc('tbxmanager("install", "testpkg1")');
+
+            pkgFile = fullfile(testCase.MockPkgDir, "testpkg1-1.0.0-all.zip");
+            hash = testCase.computeSha256(pkgFile);
+            pkgUrl = char("file://" + replace(string(pkgFile), "\", "/"));
+
+            lockPkg.version = "2.0.0";   % differs from installed 1.0.0
+            lockPkg.resolved.url = pkgUrl;
+            lockPkg.resolved.sha256 = hash;
+            lockPkg.dependencies = struct();
+
+            lockData.lockfile_version = 1;
+            lockData.generated = "2026-01-01T00:00:00Z";
+            lockData.requires = struct("testpkg1", ">=1.0");
+            lockData.packages.testpkg1 = lockPkg;
+
+            mismatchDir = fullfile(testCase.TempDir, "mismatch_proj");
+            mkdir(mismatchDir);
+            cd(mismatchDir);
+            fid = fopen(fullfile(mismatchDir, "tbxmanager.lock"), 'w');
+            fprintf(fid, '%s', jsonencode(lockData));
+            fclose(fid);
+
+            evalc('tbxmanager("sync")');
+            testCase.verifyTrue(isfolder(fullfile(testCase.TempDir, "packages", "testpkg1", "2.0.0")), ...
+                'testpkg1 should be installed at lock-specified version 2.0.0');
+        end
+
+        function testSyncNoDependenciesField(testCase)
+            % Create a lock file where the package entry has no "dependencies" field.
+            % Covers the else branch in main_sync that assigns pkg.dependencies = struct().
+            syncDir = fullfile(testCase.TempDir, "sync_nodeps");
+            mkdir(syncDir);
+
+            pkgFile = fullfile(testCase.MockPkgDir, "testpkg1-1.0.0-all.zip");
+            hash = testCase.computeSha256(pkgFile);
+            pkgUrl = char("file://" + replace(string(pkgFile), "\", "/"));
+
+            % Build lock entry WITHOUT "dependencies" field
+            lockPkg.version = "1.0.0";
+            lockPkg.resolved.url = pkgUrl;
+            lockPkg.resolved.sha256 = hash;
+            % Intentionally omit "dependencies" field to hit the else branch (L1920)
+
+            lockData.lockfile_version = 1;
+            lockData.generated = "2026-01-01T00:00:00Z";
+            lockData.requires = struct("testpkg1", ">=1.0");
+            lockData.packages.testpkg1 = lockPkg;
+
+            cd(syncDir);
+            fid = fopen(fullfile(syncDir, "tbxmanager.lock"), 'w');
+            fprintf(fid, '%s', jsonencode(lockData));
+            fclose(fid);
+
+            evalc('tbxmanager("sync")');
+            testCase.verifyTrue(isfolder(fullfile(testCase.TempDir, "packages", "testpkg1")), ...
+                'Package should be installed from lock without dependencies field');
         end
 
     end

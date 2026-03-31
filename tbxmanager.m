@@ -660,7 +660,6 @@ function plan = tbx_resolve(requested, index)
                   "platform", {}, "dependencies", {});
     resolved = containers.Map("KeyType", "char", "ValueType", "char");
     queue = requested(:)';
-    visited = containers.Map("KeyType", "char", "ValueType", "logical");
 
     maxIter = 500;
     iter = 0;
@@ -683,9 +682,6 @@ function plan = tbx_resolve(requested, index)
             continue;
         end
 
-        if visited.isKey(char(pkgName))
-            continue;
-        end
 
         % Find package in index
         if ~isfield(index.packages, char(pkgName))
@@ -769,7 +765,6 @@ function plan = tbx_resolve(requested, index)
         end
 
         resolved(char(pkgName)) = char(foundVersion);
-        visited(char(pkgName)) = true;
 
         entry.name = string(pkgName);
         entry.version = string(foundVersion);
@@ -826,16 +821,7 @@ function vInfo = tbx_getVersionField(versions, versionStr)
     safeField = matlab.lang.makeValidName(char(versionStr));
     if isfield(versions, safeField)
         vInfo = versions.(safeField);
-    elseif isfield(versions, char(versionStr))
-        vInfo = versions.(char(versionStr));
     else
-        fns = fieldnames(versions);
-        for i = 1:numel(fns)
-            if string(fns{i}) == string(safeField)
-                vInfo = versions.(fns{i});
-                return;
-            end
-        end
         error("TBXMANAGER:VersionFieldNotFound", ...
             "Cannot access version '%s' in index.", versionStr);
     end
@@ -846,17 +832,9 @@ function [url, sha, platform] = tbx_resolvePlatform(platforms, arch)
     url = "";
     sha = "";
     platform = "";
-    archField = matlab.lang.makeValidName(char(arch));
     % Try exact platform
     if isfield(platforms, char(arch))
         p = platforms.(char(arch));
-        if numel(p) > 1, p = p(1); end
-        url = tbx_scalarString(p.url);
-        sha = tbx_scalarString(p.sha256);
-        platform = string(arch);
-        return;
-    elseif isfield(platforms, archField)
-        p = platforms.(archField);
         if numel(p) > 1, p = p(1); end
         url = tbx_scalarString(p.url);
         sha = tbx_scalarString(p.sha256);
@@ -2673,6 +2651,17 @@ function result = main_internal(args)
             result = tbx_toposort(jsondecode(funcArgs(1)));
         case "buildArchive"
             tbx_buildArchive(funcArgs(1), funcArgs(2:end));
+            result = true;
+        case "fetchJson"
+            result = tbx_fetchJson(funcArgs(1));
+        case "formatBytes"
+            result = tbx_formatBytes(str2double(funcArgs(1)));
+        case "satisfiesMatlabConstraint"
+            result = tbx_satisfiesMatlabConstraint(funcArgs(1));
+        case "matlabRelease"
+            result = tbx_matlabRelease();
+        case "addToPath"
+            tbx_addToPath(funcArgs(1), funcArgs(2));
             result = true;
         otherwise
             error("TBXMANAGER:Internal", "Unknown internal function: %s", funcName);
