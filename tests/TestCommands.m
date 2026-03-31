@@ -1,5 +1,5 @@
 classdef TestCommands < matlab.unittest.TestCase
-    % Tests for user-facing commands (help, list, source, init, cache).
+    % Tests for user-facing commands (help, list, source, init, cache, require, etc.).
     % These tests run without network access — they test offline behavior.
 
     properties
@@ -38,11 +38,16 @@ classdef TestCommands < matlab.unittest.TestCase
         function testHelpAllCommands(testCase)
             cmds = ["install","uninstall","update","list","search","info",...
                     "lock","sync","init","selfupdate","source","enable",...
-                    "disable","restorepath","require","cache"];
+                    "disable","restorepath","require","cache","publish"];
             for i = 1:numel(cmds)
                 evalc('tbxmanager("help", cmds(i))');
             end
             testCase.verifyTrue(true);
+        end
+
+        function testNoArgsRunsHelp(testCase)
+            out = evalc('tbxmanager()');
+            testCase.verifyNotEmpty(out);
         end
 
         % --- list (empty) ---
@@ -79,11 +84,89 @@ classdef TestCommands < matlab.unittest.TestCase
             testCase.verifyTrue(isfield(data, 'dependencies'));
         end
 
+        function testInitExistingFileHeadless(testCase)
+            % When tbxmanager.json already exists and MATLAB is in headless mode
+            % (usejava('desktop') == false in CI), the warning is printed and we return.
+            workDir = fullfile(testCase.TempDir, "proj_existing");
+            mkdir(workDir);
+            cd(workDir);
+            evalc('tbxmanager("init")');
+            % Run init again — should warn and return without overwriting
+            out = evalc('tbxmanager("init")');
+            testCase.verifyTrue(contains(out, "already exists"), ...
+                'Should warn that tbxmanager.json already exists');
+        end
+
+        % --- source edge cases ---
+
+        function testSourceNoArgs(testCase)
+            % No args defaults to "list"
+            evalc('tbxmanager("source")');
+            testCase.verifyTrue(true);
+        end
+
+        function testSourceAddNoUrl(testCase)
+            out = evalc('tbxmanager("source", "add")');
+            testCase.verifyTrue(contains(out, "Usage"), ...
+                'Should print usage when no URL given');
+        end
+
+        function testSourceRemoveNoUrl(testCase)
+            out = evalc('tbxmanager("source", "remove")');
+            testCase.verifyTrue(contains(out, "Usage"), ...
+                'Should print usage when no URL given');
+        end
+
+        function testSourceUnknownSubCmd(testCase)
+            out = evalc('tbxmanager("source", "foobar")');
+            testCase.verifyTrue(contains(out, "Unknown") || contains(out, "foobar"), ...
+                'Should report unknown sub-command');
+        end
+
+        function testSourceListEmpty(testCase)
+            % Manually write an empty sources array to hit "No sources configured" branch
+            evalc('tbxmanager("help")');
+            stateDir = fullfile(testCase.TempDir, "state");
+            fid = fopen(fullfile(stateDir, "sources.json"), 'w');
+            fprintf(fid, '{"sources":[]}');
+            fclose(fid);
+            out = evalc('tbxmanager("source", "list")');
+            testCase.verifyTrue(contains(out, "No sources"), ...
+                'Should report no sources when sources array is empty');
+        end
+
         % --- cache ---
 
-        function testCacheList(testCase)
-            evalc('tbxmanager("cache", "list")');
+        function testCacheNoArgs(testCase)
+            % No args defaults to "list"
+            evalc('tbxmanager("cache")');
             testCase.verifyTrue(true);
+        end
+
+        function testCacheListEmpty(testCase)
+            % No cache dir — should print empty message
+            out = evalc('tbxmanager("cache", "list")');
+            testCase.verifyTrue(contains(out, "empty") || contains(out, "Cache"), ...
+                'Should report empty cache');
+        end
+
+        function testCacheListWithFiles(testCase)
+            % Create cache dir with a file, then list
+            evalc('tbxmanager("help")');
+            cacheDir = fullfile(testCase.TempDir, "cache");
+            fid = fopen(fullfile(cacheDir, "pkg-1.0.0-all.zip"), 'w');
+            fwrite(fid, repmat('x', 1, 1500));  % 1500 bytes (KB range)
+            fclose(fid);
+            out = evalc('tbxmanager("cache", "list")');
+            testCase.verifyTrue(contains(out, "pkg-1.0.0-all.zip"), ...
+                'Should list the cached file');
+        end
+
+        function testCacheCleanNoCacheDir(testCase)
+            % Cache dir doesn't exist yet
+            out = evalc('tbxmanager("cache", "clean")');
+            testCase.verifyTrue(contains(out, "does not exist") || contains(out, "Cleaned"), ...
+                'Should handle missing cache dir gracefully');
         end
 
         function testCacheClean(testCase)
@@ -96,6 +179,26 @@ classdef TestCommands < matlab.unittest.TestCase
             evalc('tbxmanager("cache", "clean")');
             files = dir(fullfile(cacheDir, "*.zip"));
             testCase.verifyEmpty(files);
+        end
+
+        function testCacheUnknownSubCmd(testCase)
+            out = evalc('tbxmanager("cache", "foobar")');
+            testCase.verifyTrue(contains(out, "Unknown") || contains(out, "foobar"), ...
+                'Should report unknown sub-command');
+        end
+
+        % --- search / info (no args) ---
+
+        function testSearchNoArgs(testCase)
+            out = evalc('tbxmanager("search")');
+            testCase.verifyTrue(contains(out, "Usage"), ...
+                'Should print usage when no query given');
+        end
+
+        function testInfoNoArgs(testCase)
+            out = evalc('tbxmanager("info")');
+            testCase.verifyTrue(contains(out, "Usage"), ...
+                'Should print usage when no package given');
         end
 
         % --- unknown command ---
@@ -112,7 +215,13 @@ classdef TestCommands < matlab.unittest.TestCase
             testCase.verifyTrue(true);
         end
 
-        % --- require missing ---
+        % --- require ---
+
+        function testRequireNoArgs(testCase)
+            out = evalc('tbxmanager("require")');
+            testCase.verifyTrue(contains(out, "Usage"), ...
+                'Should print usage when no args given');
+        end
 
         function testRequireMissing(testCase)
             testCase.verifyError(...
@@ -120,11 +229,53 @@ classdef TestCommands < matlab.unittest.TestCase
                 'TBXMANAGER:RequireMissing');
         end
 
-        % --- restorepath (empty) ---
+        function testRequireWithConstraint(testCase)
+            % Package not enabled — should still throw RequireMissing
+            testCase.verifyError(...
+                @() tbxmanager("require", "nonexistent_pkg_xyz@>=1.0"), ...
+                'TBXMANAGER:RequireMissing');
+        end
+
+        function testRequireVersionMismatch(testCase)
+            % Manually write enabled.json with testpkg at 1.0.0, then require >=2.0
+            evalc('tbxmanager("help")');
+            stateDir = fullfile(testCase.TempDir, "state");
+            pkgDir = fullfile(testCase.TempDir, "packages", "testpkg_req", "1.0.0");
+            mkdir(pkgDir);
+            pkgEntry.version = "1.0.0";
+            pkgEntry.path = pkgDir;
+            pkgs.testpkg_req = pkgEntry;
+            data.packages = pkgs;
+            fid = fopen(fullfile(stateDir, "enabled.json"), 'w');
+            fprintf(fid, '%s', jsonencode(data));
+            fclose(fid);
+            testCase.verifyError(...
+                @() tbxmanager("require", "testpkg-req@>=2.0"), ...
+                'TBXMANAGER:RequireVersionMismatch');
+        end
+
+        % --- restorepath ---
 
         function testRestorepathEmpty(testCase)
             evalc('tbxmanager("restorepath")');
             testCase.verifyTrue(true);
+        end
+
+        function testRestorepathMissingDir(testCase)
+            % enabled.json points to non-existent path — should warn (to stderr) but not crash
+            evalc('tbxmanager("help")');
+            stateDir = fullfile(testCase.TempDir, "state");
+            pkgEntry.version = "1.0.0";
+            pkgEntry.path = fullfile(testCase.TempDir, "nonexistent", "path");
+            pkgs.ghost_pkg = pkgEntry;
+            data.packages = pkgs;
+            fid = fopen(fullfile(stateDir, "enabled.json"), 'w');
+            fprintf(fid, '%s', jsonencode(data));
+            fclose(fid);
+            % Warning goes to stderr; evalc captures stdout only.
+            % Just verify no exception is thrown.
+            evalc('tbxmanager("restorepath")');
+            testCase.verifyTrue(true, 'restorepath with missing dir should not throw');
         end
 
     end

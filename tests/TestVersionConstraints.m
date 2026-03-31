@@ -136,5 +136,128 @@ classdef TestVersionConstraints < matlab.unittest.TestCase
             testCase.verifyEqual(result, 2024.0);
         end
 
+        function testReleaseNumInvalid(testCase)
+            testCase.verifyError( ...
+                @() tbxmanager("internal__", "matlabReleaseNum", "notarelease"), ...
+                'TBXMANAGER:InvalidRelease');
+        end
+
+        % --- parseConstraint additional operators ---
+
+        function testParseConstraintLte(testCase)
+            result = tbxmanager("internal__", "parseConstraint", "<=2.0");
+            testCase.verifyEqual(string(result.op), "<=");
+        end
+
+        function testParseConstraintNeq(testCase)
+            result = tbxmanager("internal__", "parseConstraint", "!=1.0");
+            testCase.verifyEqual(string(result.op), "!=");
+        end
+
+        function testParseConstraintGtOnly(testCase)
+            result = tbxmanager("internal__", "parseConstraint", ">1.0");
+            testCase.verifyEqual(string(result.op), ">");
+        end
+
+        function testParseConstraintBareVersion(testCase)
+            result = tbxmanager("internal__", "parseConstraint", "1.2.3");
+            testCase.verifyEqual(string(result.op), "==");
+            testCase.verifyEqual(string(result.version), "1.2.3");
+        end
+
+        function testParseConstraintCommaWildcard(testCase)
+            % Comma-separated constraint where one part is "*"
+            result = tbxmanager("internal__", "parseConstraint", ">=1.0,*");
+            testCase.verifyEqual(numel(result), 2);
+        end
+
+        % --- satisfiesConstraint additional operators ---
+
+        function testSatisfiesLte(testCase)
+            result = tbxmanager("internal__", "satisfiesConstraint", "1.0.0", "<=2.0");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testFailsLte(testCase)
+            result = tbxmanager("internal__", "satisfiesConstraint", "3.0.0", "<=2.0");
+            testCase.verifyFalse(logical(result));
+        end
+
+        function testSatisfiesGtOnly(testCase)
+            result = tbxmanager("internal__", "satisfiesConstraint", "2.0.0", ">1.0");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testFailsGtOnly(testCase)
+            result = tbxmanager("internal__", "satisfiesConstraint", "1.0.0", ">1.0");
+            testCase.verifyFalse(logical(result));
+        end
+
+        function testSatisfiesNeq(testCase)
+            result = tbxmanager("internal__", "satisfiesConstraint", "2.0.0", "!=1.0");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testFailsNeq(testCase)
+            result = tbxmanager("internal__", "satisfiesConstraint", "1.0.0", "!=1.0");
+            testCase.verifyFalse(logical(result));
+        end
+
+        % --- satisfiesMatlabConstraint ---
+
+        function testMatlabConstraintEmpty(testCase)
+            result = tbxmanager("internal__", "satisfiesMatlabConstraint", "");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testMatlabConstraintWildcard(testCase)
+            result = tbxmanager("internal__", "satisfiesMatlabConstraint", "*");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testMatlabConstraintLtePass(testCase)
+            % Any MATLAB satisfies <=R9999a
+            result = tbxmanager("internal__", "satisfiesMatlabConstraint", "<=R9999a");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testMatlabConstraintEqFail(testCase)
+            % R1990a is long before any real MATLAB
+            result = tbxmanager("internal__", "satisfiesMatlabConstraint", "==R1990a");
+            testCase.verifyFalse(logical(result));
+        end
+
+        function testMatlabConstraintLtPass(testCase)
+            result = tbxmanager("internal__", "satisfiesMatlabConstraint", "<R9999a");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testMatlabConstraintGtPass(testCase)
+            result = tbxmanager("internal__", "satisfiesMatlabConstraint", ">R2000a");
+            testCase.verifyTrue(logical(result));
+        end
+
+        function testMatlabConstraintBareReleaseFail(testCase)
+            result = tbxmanager("internal__", "satisfiesMatlabConstraint", "R1990a");
+            testCase.verifyFalse(logical(result));
+        end
+
+        % --- parseVersion non-numeric parts ---
+
+        function testParseVersionNonNumeric(testCase)
+            % Non-numeric parts are treated as 0
+            result = tbxmanager("internal__", "parseVersion", "1.x.0");
+            testCase.verifyEqual(result, [1 0 0]);
+        end
+
+        function testMatlabRelease(testCase)
+            % Covers the "matlabRelease" case in internal__ dispatch (L2684)
+            result = tbxmanager("internal__", "matlabRelease");
+            testCase.verifyTrue(ischar(result) || isstring(result), ...
+                'matlabRelease should return a string');
+            testCase.verifyTrue(strlength(string(result)) > 0, ...
+                'matlabRelease should return non-empty release string');
+        end
+
     end
 end
