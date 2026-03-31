@@ -295,6 +295,7 @@ classdef TestInternal < matlab.unittest.TestCase
             fid = fopen(indexFile, 'w');
             fprintf(fid, '%s', jsonencode(idx));
             fclose(fid);
+            evalc('tbxmanager("source", "remove", "https://marekwadinger.github.io/tbxmanager-registry/index.json")');
             evalc('tbxmanager("source", "add", "file://" + indexFile)');
             result = tbxmanager("internal__", "loadIndex");
             testCase.verifyTrue(isstruct(result), 'loadIndex should return a struct');
@@ -312,6 +313,7 @@ classdef TestInternal < matlab.unittest.TestCase
             fid = fopen(indexFile, 'w');
             fprintf(fid, '%s', jsonencode(idx));
             fclose(fid);
+            evalc('tbxmanager("source", "remove", "https://marekwadinger.github.io/tbxmanager-registry/index.json")');
             evalc('tbxmanager("source", "add", "file://" + indexFile)');
             % resolve with no @constraint → uses constraint="*"
             try
@@ -333,6 +335,7 @@ classdef TestInternal < matlab.unittest.TestCase
             fid = fopen(indexFile, 'w');
             fprintf(fid, '%s', jsonencode(idx));
             fclose(fid);
+            evalc('tbxmanager("source", "remove", "https://marekwadinger.github.io/tbxmanager-registry/index.json")');
             evalc('tbxmanager("source", "add", "file://" + indexFile)');
             try
                 tbxmanager("internal__", "resolve", "constpkg@>=1.0");
